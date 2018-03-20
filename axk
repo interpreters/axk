@@ -1,0 +1,74 @@
+#!/usr/bin/env perl
+# Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
+
+use v5.18;
+
+package axk;
+
+# a demo {{{1
+our $x;
+say \$x;
+sub foo(&) {
+    my $blk = shift;
+    {
+        local $x=128;
+        say &$blk;
+        say \$x;
+    }
+};
+
+foo { \$x };
+foo { foo { 42 } };
+# end of demo }}}1
+
+package axk::inner
+{
+    sub stuff { say "inner"; };
+# TODO define `our` variables usable in blocks {{{1
+
+# }}}1
+# TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
+# attributes, namespaces, ... .  This is essentially a DSL for all the ways
+# you can write a pattern
+
+# }}}1
+# TODO define subs for the pattern/action pairs: pre, post, ... .  {{{1
+# In each, test the pattern, and, if true, localize each of the `our`
+# variables and call the action.
+
+#}}}1
+} # package axk::inner
+
+# Main {{{1
+sub Main {
+    # TODO Process options
+    # TODO read in the inputs as perl source in the context of axk::inner
+    # TODO eval the inputs in the context of axk::inner
+    axk::inner::stuff;
+    return 0;
+} #Main()
+exit Main( @ARGV );
+__END__
+# }}}1
+# ### Documentation ################################################# {{{1
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+axk: awk-like tool for XML
+
+=head1 USAGE
+
+axk [options] [--] [filename]
+
+If no [filename] is given, input will be read from stdin.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2018 Chris White.  All rights reserved.  CC-BY-SA 3.0.
+
+=cut
+# }}}1
+# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker: #
