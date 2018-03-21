@@ -1,0 +1,9 @@
+#!/usr/bin/perl -w
+# To run this manually from the source tree, do
+#     perl -Ilib bin/axk
+
+use XML::Axk;
+
+XML::Axk->run;
+
+# vi: set ts=4 sts=4 sw=4 et ai ft=perl: #

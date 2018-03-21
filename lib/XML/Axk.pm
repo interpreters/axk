@@ -4,6 +4,12 @@ use 5.018;
 use strict;
 use warnings;
 
+say "XML::Axk running";
+
+sub run {
+    say "XML::Axk->run";
+} #run()
+
 =head1 NAME
 
 XML::Axk - The great new XML::Axk!
@@ -139,3 +145,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =cut
 
 1; # End of XML::Axk
+# vi: set ts=4 sts=4 sw=4 et ai ft=perl: #
