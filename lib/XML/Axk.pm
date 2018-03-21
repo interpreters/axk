@@ -1,13 +1,12 @@
 package XML::Axk;
-
-use 5.018;
-use strict;
-use warnings;
+use XML::Axk::Base;
 
 say "XML::Axk running";
 
 sub run {
     say "XML::Axk->run";
+    say Dumper({answer=>42});
+    say Dumper(true);
 } #run()
 
 =head1 NAME
