@@ -1,11 +1,16 @@
 #!/usr/bin/env perl
 # Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
 
-use v5.18;
+# Style note: Hungarian prefixes are used on scalars:
+#   "hr" (hash ref), "lr" (list ref), "sr" (string ref), "nr" (numeric ref),
+#   "dr" ("do," i.e., block ref), "ref" (unspecified ref),
+#   "b" or "is" (boolean), "s" (string)
 
 package axk;
+use axk::base;
 
 # a demo {{{1
+say true;
 our $x;
 say \$x;
 sub foo(&) {
@@ -19,10 +24,14 @@ sub foo(&) {
 
 foo { \$x };
 foo { foo { 42 } };
+say 'end of demo';
 # end of demo }}}1
 
 package axk::inner
 {
+    use Data::Dumper;
+    use constant {true => !!1, false => !!0};
+    my @worklist = ();  # array of [pattern, action] to try, in order
     sub stuff { say "inner"; };
 # TODO define `our` variables usable in blocks {{{1
 
@@ -37,6 +46,57 @@ package axk::inner
 # variables and call the action.
 
 #}}}1
+
+    ## @function public on (pattern, &action)
+    ## The main way to define pattern/action pairs.
+    ## @params required pattern     The pattern
+    ## @params required &action     A block to execute when the pattern matches
+    #sub on :prototype(\[$@%&]&) {
+    sub on :prototype(*&) {
+        say Dumper(@_);
+        my $refPattern = shift;
+        my $drAction = shift;
+        #my $refPattern = shift;
+
+        say 'in on() with ' . ref($refPattern) . ' = ' . $$refPattern;
+        say 'in on()';
+        push @worklist, [0, $drAction];
+
+    } #on()
+
+    sub run {
+        foreach my $lrItem (@worklist) {
+            my ($refPattern, $refAction) = @$lrItem;
+
+            my $isMatch = true;    # TODO evaluate $refPattern
+            next unless $isMatch;
+            eval { &$refAction };
+            #next unless @!;
+            die "eval: $@" if $@;
+
+            # Report errors
+        }
+    } #run()
+
+    sub load_file {
+        my $fn = shift;
+        open(my $fh, '<', $fn) or die("Cannot open $fn");
+        my $contents;
+        {
+            local $/;
+            $contents = <$fh>;
+        }
+        close $fh;
+
+        $fn =~ s{\\}{\\\\};
+        $fn =~ s{'}{\\'};
+        $contents = "#line 1 '$fn'\n" . $contents;
+        say "Loading $contents";
+        eval $contents;
+        die "Could not parse '$fn': $@" if $@;
+        say "Done";
+    } #load_file
+
 } # package axk::inner
 
 # Main {{{1
@@ -45,6 +105,8 @@ sub Main {
     # TODO read in the inputs as perl source in the context of axk::inner
     # TODO eval the inputs in the context of axk::inner
     axk::inner::stuff;
+    axk::inner::load_file('foo.txt');
+    axk::inner::run();
     return 0;
 } #Main()
 exit Main( @ARGV );
@@ -71,4 +133,4 @@ Copyright (c) 2018 Chris White.  All rights reserved.  CC-BY-SA 3.0.
 
 =cut
 # }}}1
-# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker: #
+# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #
