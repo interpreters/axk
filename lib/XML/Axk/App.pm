@@ -1,5 +1,6 @@
 package XML::Axk::App;
 use XML::Axk::Base;
+use XML::Axk::Core;
 
 use Getopt::Long qw(GetOptionsFromArray);
 use Pod::Usage;
@@ -93,10 +94,8 @@ sub parse_command_line {
 # }}}1
 # === Command-line runner =============================================== {{{1
 
-# Command-line runner.  Call as XML::Axk::App->run(\@ARGV).
-sub run {
-    my $class = shift;
-    croak "XML::Axk::App->run() is a static method" if ref $class;
+# Command-line runner.  Call as XML::Axk::App::run(\@ARGV).
+sub Main {
     my $lrArgs = shift;
     say 'Args:' . Dumper($lrArgs);
 
@@ -105,8 +104,19 @@ sub run {
 
     say "Opts: " . Dumper(\%opts);
     say "Remaining: " . Dumper($lrArgs);
+
+    # TODO only load scripts
+    say "Loading scripts";
+    foreach my $filename (@{$lrArgs}) {
+        XML::Axk::Core::load_script($filename);
+    }
+
+    say "Running";
+    XML::Axk::Core::run();
+    say "App:main done";
+
     return 0;
-} #run()
+} #Main()
 
 1; # End of XML::Axk::App
 
@@ -129,7 +139,7 @@ Version 0.01
 =head1 USAGE
 
     use XML::Axk::App;
-    XML::Axk::App->run(\@ARGV)
+    XML::Axk::App::Main(\@ARGV)
 
     use XML::Axk;
     my $foo = XML::Axk->new();
@@ -234,4 +244,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =cut
 
 # }}}1
-# vi: set ts=4 sts=4 sw=4 et ai ft=perl: #
+# vi: set ts=4 sts=4 sw=4 et ai foldmethod=marker: #

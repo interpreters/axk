@@ -1,4 +1,5 @@
 say "hello from foo!";
+V1
 my $x=42;
 on 42, sub { die("oops from foo"); };
 #on { die("oops from foo"); } 42;

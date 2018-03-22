@@ -27,89 +27,61 @@ foo { foo { 42 } };
 say 'end of demo';
 # end of demo }}}1
 
-package XML::Axk::Inner
-{
-    use Data::Dumper;
-    use constant {true => !!1, false => !!0};
-    my @worklist = ();  # array of [pattern, action] to try, in order
-    sub stuff { say "inner"; };
-# TODO define `our` variables usable in blocks {{{1
+our @worklist = ();  # list of [pattern, action] to try, in order of definition
 
-# }}}1
-# TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
-# attributes, namespaces, ... .  This is essentially a DSL for all the ways
-# you can write a pattern
+my $scriptnumber = 0;
 
-# }}}1
-# TODO define subs for the pattern/action pairs: pre, post, ... .  {{{1
-# In each, test the pattern, and, if true, localize each of the `our`
-# variables and call the action.
+# Load the script file given in $_[0], but do not execute it
+sub load_script {
+    my $fn = shift;
+    open(my $fh, '<', $fn) or die("Cannot open $fn");
+    my $contents;
+    {
+        local $/;
+        $contents = <$fh>;
+    }
+    close $fh;
 
-#}}}1
+    # Permit users to specify the axk language version using `Vn` pragmas.
+    # E.g., V1 (= V 1, V01, V001, ...) is specified in XML::Axk::V1.
+    # The `V` must be the first non-whitespace on the line.
+    # An axk script without a Vn pragma is an error.
+    $contents =~ s{^\h*V\h*0*(\d+)\h*;?}{use XML::Axk::V$1;}m;
 
-    ## @function public on (pattern, &action)
-    ## The main way to define pattern/action pairs.
-    ## @params required pattern     The pattern
-    ## @params required &action     A block to execute when the pattern matches
-    #sub on :prototype(\[$@%&]&) {
-    sub on :prototype(*&) {
-        say Dumper(@_);
-        my $refPattern = shift;
-        my $drAction = shift;
-        #my $refPattern = shift;
+    # Text to wrap around the script
+    my ($leader, $trailer) = ('', '');
 
-        say 'in on() with ' . ref($refPattern) . ' = ' . $$refPattern;
-        say 'in on()';
-        push @worklist, [0, $drAction];
+    # Mark the filename for the sake of error messages
+    $fn =~ s{\\}{\\\\};
+    $fn =~ s{'}{\\'};
+    $leader .= "#line 1 '$fn'\n";
 
-    } #on()
+    # Put the user's script in its own package
+    $leader = "package axk_script_$scriptnumber {\n" . $leader;
+    $trailer .= "\n};\n";
+    ++$scriptnumber;
 
-    sub run {
-        foreach my $lrItem (@worklist) {
-            my ($refPattern, $refAction) = @$lrItem;
+    $contents = ($leader . $contents . $trailer);
+    say "Loading $contents";
+    eval $contents;
+    die "Could not parse '$fn': $@" if $@;
+    say "Done";
+} #load_script
 
-            my $isMatch = true;    # TODO evaluate $refPattern
-            next unless $isMatch;
-            eval { &$refAction };
-            #next unless @!;
-            die "eval: $@" if $@;
+# Run the loaded script(s)
+sub run {
+    foreach my $lrItem (@worklist) {
+        my ($refPattern, $refAction) = @$lrItem;
 
-            # Report errors
-        }
-    } #run()
+        my $isMatch = true;    # TODO evaluate $refPattern
+        next unless $isMatch;
+        eval { &$refAction };   # which context are they evaluated in?
+        #next unless @!;
+        die "eval: $@" if $@;
 
-    sub load_file {
-        my $fn = shift;
-        open(my $fh, '<', $fn) or die("Cannot open $fn");
-        my $contents;
-        {
-            local $/;
-            $contents = <$fh>;
-        }
-        close $fh;
-
-        $fn =~ s{\\}{\\\\};
-        $fn =~ s{'}{\\'};
-        $contents = "#line 1 '$fn'\n" . $contents;
-        say "Loading $contents";
-        eval $contents;
-        die "Could not parse '$fn': $@" if $@;
-        say "Done";
-    } #load_file
-
-} # package XML::Axk::Inner
-
-# Main {{{1
-sub Main {
-    # TODO read in the inputs as perl source in the context of axk::inner
-    # TODO eval the inputs in the context of axk::inner
-    axk::inner::stuff;
-    axk::inner::load_file('foo.txt');
-    axk::inner::run();
-    return 0;
-} #Main()
+        # Report errors
+    }
+} #run()
 
 1;
-
-# }}}1
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #
