@@ -21,7 +21,6 @@ BEGIN {
 }
 
 sub import {
-    say 'XML::Axk::Base->import() running';
     feature->import(':5.18');
     strict->import;
     warnings->import;
@@ -32,13 +31,13 @@ sub import {
 
     do {
         no strict 'refs';
-        *{"$caller\:\:true"}  = *{"true"};
-        *{"$caller\:\:false"}  = *{"false"};
+        *{"${caller}::true"}  = *{"true"};
+        *{"${caller}::false"}  = *{"false"};
 
-        *{"$caller\:\:Dumper"}  = *{"Data\:\:Dumper\:\:Dumper"};
-        *{"$caller\:\:carp"}  = *{"Carp\:\:carp"};
-        *{"$caller\:\:croak"}  = *{"Carp\:\:croak"};
-        *{"$caller\:\:confess"}  = *{"Carp\:\:confess"};
+        *{"${caller}::Dumper"}  = *{"Data::Dumper::Dumper"};
+        *{"${caller}::carp"}  = *{"Carp::carp"};
+        *{"${caller}::croak"}  = *{"Carp::croak"};
+        *{"${caller}::confess"}  = *{"Carp::confess"};
     };
 } #import()
 
