@@ -1,4 +1,4 @@
-package XML::Axk;
+package XML::Axk::App;
 use XML::Axk::Base;
 
 use Getopt::Long qw(GetOptionsFromArray);
@@ -16,7 +16,7 @@ use constant EXIT_PARAM_ERR	=> 2;	# couldn't understand the command line
 
 our $VERSION = '0.01';
 
-say "XML::Axk running";
+say "XML::Axk::App running";
 
 # === Command line parsing ============================================== {{{1
 
@@ -93,10 +93,10 @@ sub parse_command_line {
 # }}}1
 # === Command-line runner =============================================== {{{1
 
-# Command-line runner.  Call as XML::Axk->run(\@ARGV).
+# Command-line runner.  Call as XML::Axk::App->run(\@ARGV).
 sub run {
     my $class = shift;
-    croak "XML::Axk->run() is a static method" if ref $class;
+    croak "XML::Axk::App->run() is a static method" if ref $class;
     my $lrArgs = shift;
     say 'Args:' . Dumper($lrArgs);
 
@@ -108,7 +108,7 @@ sub run {
     return 0;
 } #run()
 
-1; # End of XML::Axk
+1; # End of XML::Axk::App
 
 __END__
 # }}}1
@@ -120,7 +120,7 @@ __END__
 
 =head1 NAME
 
-XML::Axk - The great new XML::Axk!
+XML::Axk::App - The great new XML::Axk!
 
 =head1 VERSION
 
@@ -128,9 +128,10 @@ Version 0.01
 
 =head1 USAGE
 
-    use XML::Axk;
-    XML::Axk->run(\@ARGV)
+    use XML::Axk::App;
+    XML::Axk::App->run(\@ARGV)
 
+    use XML::Axk;
     my $foo = XML::Axk->new();
 
 =head1 OPTIONS
