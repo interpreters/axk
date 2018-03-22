@@ -1,13 +1,122 @@
 package XML::Axk;
 use XML::Axk::Base;
 
+use Getopt::Long qw(GetOptionsFromArray);
+use Pod::Usage;
+use Pod::Find qw(pod_where);
+
+use Web::Query::LibXML;
+
+use constant DEBUG			=> false;
+
+# Shell exit codes
+use constant EXIT_OK 		=> 0;	# success
+use constant EXIT_PROC_ERR 	=> 1;	# error during processing
+use constant EXIT_PARAM_ERR	=> 2;	# couldn't understand the command line
+
+our $VERSION = '0.01';
+
 say "XML::Axk running";
 
+# === Command line parsing ============================================== {{{1
+
+my %CMDLINE_OPTS = (
+    # hash from internal name to array reference of
+    # [getopt-name, getopt-options, optional default-value]
+    # They are listed in alphabetical order by option name,
+    # lowercase before upper, although the code does not require that order.
+
+    DEBUG => ['d','|E|debug', false],
+    DEFS => ['D','|define:s%'],     # In %D, and text substitution
+    EVAL => ['e','|eval=s', ''],
+    # -h and --help reserved
+    # INPUT_FILENAME assigned by parse_command_line_into()
+    KEEP_GOING => ['k','|keep-going',false],
+    # --man reserved
+    OUTPUT_FILENAME => ['o','|output=s', ""],
+    SETS => ['s','|set:s%'],        # Extra data in %S, without text substitution
+    # --usage reserved
+    PRINT_VERSION => ['v','|version'],
+    # -? reserved
+);
+
+sub parse_command_line {
+    # Takes {into=>hash ref, from=>array ref}.  Fills in the hash with the
+    # values from the command line, keyed by the keys in %CMDLINE_OPTS.
+
+    my %params = @_;
+    croak "Missing arg from" unless $params{from};
+    croak "Missing arg into" unless $params{into};
+
+    my $hrOptsOut = $params{into};
+
+    # Easier syntax for checking whether optional args were provided.
+    # Syntax thanks to http://www.perlmonks.org/?node_id=696592
+    local *have = sub { return exists($hrOptsOut->{ $_[0] }); };
+
+    Getopt::Long::Configure 'gnu_getopt';
+
+    # Set defaults so we don't have to test them with exists().
+    %$hrOptsOut = (     # map getopt option name to default value
+        map { $CMDLINE_OPTS{ $_ }->[0] => $CMDLINE_OPTS{ $_ }[2] }
+        grep { (scalar @{$CMDLINE_OPTS{ $_ }})==3 }
+        keys %CMDLINE_OPTS
+    );
+
+    # Get options
+    GetOptionsFromArray(
+        $params{from},                  # source array
+        $hrOptsOut,                     # destination hash
+        'usage|?', 'h|help', 'man',     # options we handle here
+        map { $_->[0] . $_->[1] } values %CMDLINE_OPTS,     # options strs
+        )
+    or pod2usage(-verbose => 0, -exitval => EXIT_PARAM_ERR);    # unknown opt
+
+    # Help, if requested
+    my $pod_input = pod_where({-inc => 1}, __PACKAGE__);
+    pod2usage(-verbose => 0, -exitval => EXIT_PROC_ERR, -input => $pod_input) if have('usage');
+    pod2usage(-verbose => 1, -exitval => EXIT_PROC_ERR, -input => $pod_input) if have('h');
+    pod2usage(-verbose => 2, -exitval => EXIT_PROC_ERR, -input => $pod_input) if have('man');
+
+    # Map the option names from GetOptions back to the internal names we use,
+    # e.g., $hrOptsOut->{EVAL} from $hrOptsOut->{e}.
+    my %revmap = map { $CMDLINE_OPTS{$_}->[0] => $_ } keys %CMDLINE_OPTS;
+    for my $optname (keys %$hrOptsOut) {
+        $hrOptsOut->{ $revmap{$optname} } = $hrOptsOut->{ $optname };
+    }
+
+    # Process other arguments.  TODO? support multiple input filenames?
+    #$hrOptsOut->{INPUT_FILENAME} = $ARGV[0] // "";
+
+} #parse_command_line()
+
+# }}}1
+# === Command-line runner =============================================== {{{1
+
+# Command-line runner.  Call as XML::Axk->run(\@ARGV).
 sub run {
-    say "XML::Axk->run";
-    say Dumper({answer=>42});
-    say Dumper(true);
+    my $class = shift;
+    croak "XML::Axk->run() is a static method" if ref $class;
+    my $lrArgs = shift;
+    say 'Args:' . Dumper($lrArgs);
+
+    my %opts;
+    parse_command_line(from => $lrArgs, into => \%opts);
+
+    say "Opts: " . Dumper(\%opts);
+    say "Remaining: " . Dumper($lrArgs);
+    return 0;
 } #run()
+
+1; # End of XML::Axk
+
+__END__
+# }}}1
+# === Documentation ===================================================== {{{1
+
+=pod
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -17,21 +126,16 @@ XML::Axk - The great new XML::Axk!
 
 Version 0.01
 
-=cut
-
-our $VERSION = '0.01';
-
-
-=head1 SYNOPSIS
-
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
+=head1 USAGE
 
     use XML::Axk;
+    XML::Axk->run(\@ARGV)
 
     my $foo = XML::Axk->new();
-    ...
+
+=head1 OPTIONS
+
+None yet!
 
 =head1 EXPORT
 
@@ -42,17 +146,9 @@ if you don't export anything, such as for a purely object-oriented module.
 
 =head2 function1
 
-=cut
-
-sub function1 {
-}
-
 =head2 function2
 
 =cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
@@ -64,15 +160,11 @@ Please report any bugs or feature requests to C<bug-xml-axk at rt.cpan.org>, or 
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Axk>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc XML::Axk
-
 
 You can also look for information at:
 
@@ -96,9 +188,7 @@ L<http://search.cpan.org/dist/XML-Axk/>
 
 =back
 
-
 =head1 ACKNOWLEDGEMENTS
-
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -140,8 +230,7 @@ CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
 CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 =cut
 
-1; # End of XML::Axk
+# }}}1
 # vi: set ts=4 sts=4 sw=4 et ai ft=perl: #

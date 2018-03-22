@@ -20,6 +20,12 @@ WriteMakefile(
     },
     PREREQ_PM => {
         'Data::Dumper' => '0',
+        'Getopt::Long' => '0',
+        'Pod::Usage' => '0',
+        'Pod::Find' => '0',
+        'Carp' => '0',
+        'Web::Query' => '0',
+        'Web::Query::LibXML' => '0',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'XML-Axk-*' },

@@ -12,14 +12,20 @@ use constant {true => !!1, false => !!0};
 
 # Packages
 use Data::Dumper;
+use Carp qw(carp croak confess);
 
 say 'XML::Axk::Base running';
+
+BEGIN {
+    $SIG{'__DIE__'} = sub { confess(@_) };
+}
 
 sub import {
     say 'XML::Axk::Base->import() running';
     feature->import(':5.18');
     strict->import;
     warnings->import;
+    Carp->import;
 
     # Copy symbols.
     my $caller = caller(0);     # get the importing package name
@@ -30,6 +36,9 @@ sub import {
         *{"$caller\:\:false"}  = *{"false"};
 
         *{"$caller\:\:Dumper"}  = *{"Data\:\:Dumper\:\:Dumper"};
+        *{"$caller\:\:carp"}  = *{"Carp\:\:carp"};
+        *{"$caller\:\:croak"}  = *{"Carp\:\:croak"};
+        *{"$caller\:\:confess"}  = *{"Carp\:\:confess"};
     };
 } #import()
 
