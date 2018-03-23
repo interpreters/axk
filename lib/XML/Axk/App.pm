@@ -6,7 +6,7 @@ use Getopt::Long qw(GetOptionsFromArray);
 use Pod::Usage;
 use Pod::Find qw(pod_where);
 
-use Web::Query::LibXML;
+#use Web::Query::LibXML;
 
 use constant DEBUG			=> false;
 

@@ -53,8 +53,10 @@ sub load_script {
 
     # Mark the filename for the sake of error messages
     $fn =~ s{\\}{\\\\};
-    $fn =~ s{'}{\\'};
-    $leader .= "#line 1 '$fn'\n";
+    $fn =~ s{"}{\\"};
+    $leader .= ";\n#line 0 \"$fn\"\n;\n";
+        # Extra ; so the #line directive is in its own statement.
+        # Thanks to https://www.effectiveperlprogramming.com/2011/06/set-the-line-number-and-filename-of-string-evals/
 
     # Put the user's script in its own package
     $leader = "package axk_script_$scriptnumber {\n" . $leader;
