@@ -9,23 +9,23 @@
 package XML::Axk::Core;
 use XML::Axk::Base;
 
-# a demo {{{1
-say true;
-our $x;
-say \$x;
-sub foo(&) {
-    my $blk = shift;
-    {
-        local $x=128;
-        say &$blk;
-        say \$x;
-    }
-};
-
-foo { \$x };
-foo { foo { 42 } };
-say 'end of demo';
-# end of demo }}}1
+## # a demo {{{1
+## say true;
+## our $x;
+## say \$x;
+## sub foo(&) {
+##     my $blk = shift;
+##     {
+##         local $x=128;
+##         say &$blk;
+##         say \$x;
+##     }
+## };
+##
+## foo { \$x };
+## foo { foo { 42 } };
+## say 'end of demo';
+## # end of demo }}}1
 
 our @worklist = ();  # list of [pattern, action] to try, in order of definition
 
@@ -52,9 +52,12 @@ sub load_script {
     my ($leader, $trailer) = ('', '');
 
     # Mark the filename for the sake of error messages
-    $fn =~ s{\\}{\\\\};
-    $fn =~ s{"}{\\"};
-    $leader .= ";\n#line 0 \"$fn\"\n;\n";
+    #$fn =~ s{\\}{\\\\}g;   # This doesn't seem to be necessary based on
+                            # the regex given for #line in perlsyn.
+    $fn =~ s{"}{-}g;
+        # as far as I can tell, #line can't handle embedded quotes.
+
+    $leader .= ";\n#line 1 \"$fn\"\n";
         # Extra ; so the #line directive is in its own statement.
         # Thanks to https://www.effectiveperlprogramming.com/2011/06/set-the-line-number-and-filename-of-string-evals/
 

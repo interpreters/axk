@@ -2,9 +2,7 @@ package XML::Axk::App;
 use XML::Axk::Base;
 use XML::Axk::Core;
 
-use Getopt::Long qw(GetOptionsFromArray);
-use Pod::Usage;
-use Pod::Find qw(pod_where);
+use Getopt::Long qw(GetOptionsFromArray :config gnu_getopt);
 
 #use Web::Query::LibXML;
 
@@ -46,16 +44,14 @@ sub parse_command_line {
     # values from the command line, keyed by the keys in %CMDLINE_OPTS.
 
     my %params = @_;
-    croak "Missing arg from" unless $params{from};
-    croak "Missing arg into" unless $params{into};
+    #croak "Missing arg from" unless $params{from};
+    #croak "Missing arg into" unless $params{into};
 
     my $hrOptsOut = $params{into};
 
     # Easier syntax for checking whether optional args were provided.
     # Syntax thanks to http://www.perlmonks.org/?node_id=696592
     local *have = sub { return exists($hrOptsOut->{ $_[0] }); };
-
-    Getopt::Long::Configure 'gnu_getopt';
 
     # Set defaults so we don't have to test them with exists().
     %$hrOptsOut = (     # map getopt option name to default value
@@ -74,10 +70,16 @@ sub parse_command_line {
     or pod2usage(-verbose => 0, -exitval => EXIT_PARAM_ERR);    # unknown opt
 
     # Help, if requested
-    my $pod_input = pod_where({-inc => 1}, __PACKAGE__);
-    pod2usage(-verbose => 0, -exitval => EXIT_PROC_ERR, -input => $pod_input) if have('usage');
-    pod2usage(-verbose => 1, -exitval => EXIT_PROC_ERR, -input => $pod_input) if have('h');
-    pod2usage(-verbose => 2, -exitval => EXIT_PROC_ERR, -input => $pod_input) if have('man');
+    if(have('usage') || have('h') || have('man')) {
+        # Only pull in the Pod routines if we actually need them.
+        require Pod::Usage;
+        require Pod::Find; # qw(pod_where);
+        my $pod_input = Pod::Find::pod_where({-inc => 1}, __PACKAGE__);
+            # I think this was taking quite a bit of time.
+        Pod::Usage::pod2usage(-verbose => 0, -exitval => EXIT_OK, -input => $pod_input) if have('usage');
+        Pod::Usage::pod2usage(-verbose => 1, -exitval => EXIT_OK, -input => $pod_input) if have('h');
+        Pod::Usage::pod2usage(-verbose => 2, -exitval => EXIT_OK, -input => $pod_input) if have('man');
+    }
 
     # Map the option names from GetOptions back to the internal names we use,
     # e.g., $hrOptsOut->{EVAL} from $hrOptsOut->{e}.
@@ -118,10 +120,9 @@ sub Main {
     return 0;
 } #Main()
 
-1; # End of XML::Axk::App
-
-__END__
 # }}}1
+1; # End of XML::Axk::App
+__END__
 # === Documentation ===================================================== {{{1
 
 =pod
