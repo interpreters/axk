@@ -1,5 +1,11 @@
 say "hello from foo!";
 V1
+pre_all { say "pre_all"; };
+pre_file { say "pre_file from " . shift; };
+post_file { say "post_file"; };
+post_all { say "post_all"; };
+
 my $x=42;
-on 42, sub { die("oops from foo"); };
+on $x, sub { say 'Howdy!' };
+#on 42, sub { die("oops from foo"); };
 #on { die("oops from foo"); } 42;

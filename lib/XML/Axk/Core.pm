@@ -27,7 +27,13 @@ use XML::Axk::Base;
 ## say 'end of demo';
 ## # end of demo }}}1
 
-our @worklist = ();  # list of [pattern, action] to try, in order of definition
+# Storage for routines defined by the user's scripts.
+# All are loaded in definition order.
+our @pre_all = ();      # List of \& to run before reading the first file
+our @pre_file = ();     # List of \& to run before reading each file
+our @worklist = ();     # List of [\&condition, \&action] for each node
+our @post_file = ();    # List of \& to run after reading each file
+our @post_all = ();     # List of \& to run after reading the last file
 
 my $scriptnumber = 0;
 
@@ -73,19 +79,47 @@ sub load_script {
     say "Done";
 } #load_script
 
-# Run the loaded script(s)
+# Run the loaded script(s).  Takes a list of input files.
 sub run {
-    foreach my $lrItem (@worklist) {
-        my ($refPattern, $refAction) = @$lrItem;
 
-        my $isMatch = true;    # TODO evaluate $refPattern
-        next unless $isMatch;
-        eval { &$refAction };   # which context are they evaluated in?
-        #next unless @!;
-        die "eval: $@" if $@;
-
-        # Report errors
+    foreach my $drAction (@pre_all) {
+        eval { &$drAction };   # which context are they evaluated in?
+        die "pre_all: $@" if $@;
     }
+
+    foreach my $infn (@_) {
+
+        say "Processing $infn";
+
+        foreach my $drAction (@pre_file) {
+            eval { &$drAction($infn) };   # which context are they evaluated in?
+            die "pre_file: $@" if $@;
+        }
+
+        foreach my $lrItem (@worklist) {
+            my ($refPattern, $refAction) = @$lrItem;
+
+            my $isMatch = true;    # TODO evaluate $refPattern
+            next unless $isMatch;
+            eval { &$refAction };   # which context are they evaluated in?
+            #next unless @!;
+            die "action: $@" if $@;
+
+            # Report errors
+        }
+
+        foreach my $drAction (@post_file) {
+            eval { &$drAction($infn) };   # which context are they evaluated in?
+            die "post_file: $@" if $@;
+        }
+
+    } #foreach filename
+
+    foreach my $drAction (@post_all) {
+        eval { &$drAction };   # which context are they evaluated in?
+        die "post_all: $@" if $@;
+    }
+
 } #run()
 
 1;

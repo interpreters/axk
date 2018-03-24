@@ -114,7 +114,8 @@ sub Main {
     }
 
     say "Running";
-    XML::Axk::Core::run();
+    XML::Axk::Core::run('/dev/null');
+        # /dev/null => Not yet loading files
     say "App:main done";
 
     return 0;

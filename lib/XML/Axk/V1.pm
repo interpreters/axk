@@ -5,20 +5,34 @@
 package XML::Axk::V1;
 use XML::Axk::Base;
 
-# TODO define `our` variables usable in blocks {{{1
+# Set up for export_to_level below
+our @ISA = qw(Exporter);
+our @EXPORT = qw(pre_all pre_file on post_file post_all);
 
-# }}}1
 # TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
 # attributes, namespaces, ... .  This is essentially a DSL for all the ways
 # you can write a pattern
 
 # }}}1
-# TODO define subs for the pattern/action pairs: pre, post, ... .  {{{1
-# In each, test the pattern, and, if true, localize each of the `our`
-# variables and call the action.
+# Definers for special-case actions ============================== {{{1
+sub pre_all :prototype(&) {
+    push @XML::Axk::Core::pre_all, shift;
+} #pre_all()
 
-#}}}1
+sub pre_file :prototype(&) {
+    push @XML::Axk::Core::pre_file, shift;
+} #pre_file()
 
+sub post_file :prototype(&) {
+    push @XML::Axk::Core::post_file, shift;
+} #post_file()
+
+sub post_all :prototype(&) {
+    push @XML::Axk::Core::post_all, shift;
+} #post_all()
+
+# }}}1
+# Definers for node actions ====================================== {{{1
 ## @function public on (pattern, &action)
 ## The main way to define pattern/action pairs.
 ## @params required pattern     The pattern
@@ -38,21 +52,20 @@ sub on :prototype(*&) {
 
 } #on()
 
+# }}}1
+# import ========================================================= {{{1
 sub import {
+
+    # Copy symbols listed in @EXPORT first, in case @_ gets trashed later
+    XML::Axk::V1->export_to_level(1, @_);   # from Exporter
+
     feature->import(':5.18');
     strict->import;
     warnings->import;
     Carp->import;
 
-    # Copy symbols.
-    my $caller = caller(0);     # get the importing package name
-
-    do {
-        no strict 'refs';
-        *{"$caller\:\:on"}  = *{"on"};
-    };
 }; #import()
 
+# }}}1
 1;
-
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker: #
