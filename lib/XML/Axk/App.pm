@@ -15,8 +15,6 @@ use constant EXIT_OK 		=> 0;	# success
 use constant EXIT_PROC_ERR 	=> 1;	# error during processing
 use constant EXIT_PARAM_ERR	=> 2;	# couldn't understand the command line
 
-our $VERSION = '0.01';
-
 say "XML::Axk::App running";
 
 # === Command line parsing ============================================== {{{1
@@ -98,7 +96,7 @@ sub parse_command_line {
 # }}}1
 # === Command-line runner =============================================== {{{1
 
-# Command-line runner.  Call as XML::Axk::App::run(\@ARGV).
+# Command-line runner.  Call as XML::Axk::App::Main(\@ARGV).
 sub Main {
     my $lrArgs = shift;
     say 'Args:' . Dumper($lrArgs);
@@ -124,6 +122,9 @@ sub Main {
 } #Main()
 
 # }}}1
+
+# no import() --- call Main() directly with its fully-qualified name
+
 1; # End of XML::Axk::App
 __END__
 # === Documentation ===================================================== {{{1

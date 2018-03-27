@@ -15,7 +15,7 @@ use XML::Axk::ScriptAccessibleVars;
 Pollute;
 
 # Exports from this file, exported by import()'s call to export_to_level()
-our @ISA = qw(Exporter);
+use parent 'Exporter';
 our @EXPORT = qw(pre_all pre_file on post_file post_all);
 
 # }}}1

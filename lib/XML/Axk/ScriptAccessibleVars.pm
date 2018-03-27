@@ -10,7 +10,7 @@ our $foo = 'Hello, world!  from ScriptAccessibleVars';
 
 # }}}1
 # Export ========================================================= {{{1
-our @ISA = qw(Exporter);
+use parent 'Exporter';
 our @EXPORT = qw($foo);
 
 # }}}1

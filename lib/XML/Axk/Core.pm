@@ -75,7 +75,9 @@ sub load_script {
         # Thanks to https://www.effectiveperlprogramming.com/2011/06/set-the-line-number-and-filename-of-string-evals/
 
     # Put the user's script in its own package
-    $leader = "package axk_script_$scriptnumber {\n" . $leader;
+    $leader = "package axk_script_$scriptnumber {\n" .
+        "use XML::Axk::Base;\n" .
+        $leader;
     $trailer .= "\n};\n";
     ++$scriptnumber;
 
@@ -134,6 +136,7 @@ sub run {
 
 # }}}1
 
-# No import()
+# No import() --- callers should refer to the symbols with their
+# fully- qualified names.
 1;
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #
