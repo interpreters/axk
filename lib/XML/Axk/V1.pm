@@ -8,11 +8,7 @@ use XML::Axk::Core;
 
 # Exports to the user's scripts ================================== {{{1
 
-# Re-export the ScriptAccessibleVars
-use Pollute;
-# TODO grab Core here?
-use XML::Axk::ScriptAccessibleVars;
-Pollute;
+use XML::Axk::ScriptAccessibleVars;     # To re-export
 
 # Exports from this file, exported by import()'s call to export_to_level()
 use parent 'Exporter';
@@ -67,19 +63,11 @@ sub on :prototype(*&) {
 sub import {
 
     # Copy symbols listed in @EXPORT first, in case @_ gets trashed later
-    XML::Axk::V1->export_to_level(1, @_);   # from Exporter
+    shift->export_to_level(1, @_);   # from Exporter
 
-    feature->import(':5.18');
-    strict->import;
-    warnings->import;
-    Carp->import;
-
-    # TODO re-export the symbols accessible by user scripts from
-    # XML::Axk::Core.
-    do {
-        no strict 'refs';
-        my $destpkg = caller;
-    };
+    # Re-export
+    my $target = caller;
+    XML::Axk::ScriptAccessibleVars->import::into($target);
 }; #import()
 
 # }}}1

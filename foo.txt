@@ -1,7 +1,7 @@
 say "hello from foo!";
 V1
 pre_all { say "pre_all"; };
-pre_file { say "pre_file from " . shift; };
+pre_file { say "pre_file from: " . Dumper(shift); };
 post_file { say "post_file"; };
 post_all { say "post_all"; };
 

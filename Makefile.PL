@@ -26,7 +26,7 @@ WriteMakefile(
         'Carp' => '0',
         'Web::Query' => '0',
         'Web::Query::LibXML' => '0',
-        'Pollute' => '0',
+        'Import::Into' => '0',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'XML-Axk-*' },

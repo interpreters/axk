@@ -6,6 +6,7 @@ package XML::Axk::ScriptAccessibleVars;
 use XML::Axk::Base;
 
 # Variables ====================================================== {{{1
+# Note: `our` variables are shared between all running scripts.
 our $foo = 'Hello, world!  from ScriptAccessibleVars';
 
 # }}}1

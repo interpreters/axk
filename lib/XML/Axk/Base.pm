@@ -4,6 +4,7 @@
 
 package XML::Axk::Base;
 use parent 'Exporter';
+use Import::Into;
 
 # Pragmas
 use feature ":5.18";
@@ -12,33 +13,32 @@ use warnings;
 
 # Packages
 use Data::Dumper;
-use Carp qw(carp croak confess);
+use Carp;
 
 # Definitions from this file
 use constant {true => !!1, false => !!0};
-
-our @EXPORT = qw(true false Dumper);
-
-say 'XML::Axk::Base running';
+our @EXPORT = qw(true false);
 
 BEGIN {
-    $SIG{'__DIE__'} = sub { confess(@_) } if not $SIG{'__DIE__'};
+    $SIG{'__DIE__'} = sub { Carp::confess(@_) } if not $SIG{'__DIE__'};
 }
 
 sub import {
 
     # Copy symbols listed in @EXPORT first, in case @_ gets trashed later
-    XML::Axk::Base->export_to_level(1, @_);
+    shift->export_to_level(1, @_);
+
+    my $target = caller;
 
     # Re-export pragmas
-    feature->import(':5.18');
-    strict->import;
-    warnings->import;
+    feature->import::into($target, qw(:5.18));
+    foreach my $pragma (qw(strict warnings)) {
+        ${pragma}->import::into($target);
+    };
 
     # Re-export packages
-    #Data::Dumper->import;  # not sure why this doesn't work, but it doesn't.
-                            # I listed it in @EXPORT above.
-    Carp->import(qw(carp croak confess));
+    Data::Dumper->import::into($target);
+    Carp->import::into($target, qw(carp croak confess));
 
 } #import()
 
