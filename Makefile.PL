@@ -6,8 +6,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME            => 'XML::Axk',
     AUTHOR          => q{Christopher White <cxwembedded@gmail.com>},
-    VERSION_FROM    => 'lib/XML/Axk.pm',
-    ABSTRACT_FROM   => 'lib/XML/Axk.pm',
+    VERSION_FROM    => 'lib/XML/Axk/App.pm',
+    ABSTRACT_FROM   => 'lib/XML/Axk/App.pm',
     LICENSE         => 'artistic_2',
     PL_FILES        => {},
     EXE_FILES       => [ 'bin/axk' ],
@@ -26,6 +26,7 @@ WriteMakefile(
         'Carp' => '0',
         'Web::Query' => '0',
         'Web::Query::LibXML' => '0',
+        'Pollute' => '0',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'XML-Axk-*' },

@@ -27,15 +27,22 @@ use XML::Axk::Base;
 ## say 'end of demo';
 ## # end of demo }}}1
 
-# Storage for routines defined by the user's scripts.
-# All are loaded in definition order.
+# Storage for routines defined by the user's scripts ==================== {{{1
+
+# Load these in the order they are defined in the scripts.
 our @pre_all = ();      # List of \& to run before reading the first file
 our @pre_file = ();     # List of \& to run before reading each file
 our @worklist = ();     # List of [\&condition, \&action] for each node
 our @post_file = ();    # List of \& to run after reading each file
 our @post_all = ();     # List of \& to run after reading the last file
 
+# }}}1
+# Private vars ========================================================== {{{1
+# For giving each script a unique package name
 my $scriptnumber = 0;
+
+# }}}1
+# Loading =============================================================== {{{1
 
 # Load the script file given in $_[0], but do not execute it
 sub load_script {
@@ -78,6 +85,9 @@ sub load_script {
     die "Could not parse '$fn': $@" if $@;
     say "Done";
 } #load_script
+
+# }}}1
+# Running =============================================================== {{{1
 
 # Run the loaded script(s).  Takes a list of input files.
 sub run {
@@ -122,5 +132,8 @@ sub run {
 
 } #run()
 
+# }}}1
+
+# No import()
 1;
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #

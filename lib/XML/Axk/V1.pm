@@ -4,11 +4,21 @@
 
 package XML::Axk::V1;
 use XML::Axk::Base;
+use XML::Axk::Core;
 
-# Set up for export_to_level below
+# Exports to the user's scripts ================================== {{{1
+
+# Re-export the ScriptAccessibleVars
+use Pollute;
+# TODO grab Core here?
+use XML::Axk::ScriptAccessibleVars;
+Pollute;
+
+# Exports from this file, exported by import()'s call to export_to_level()
 our @ISA = qw(Exporter);
 our @EXPORT = qw(pre_all pre_file on post_file post_all);
 
+# }}}1
 # TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
 # attributes, namespaces, ... .  This is essentially a DSL for all the ways
 # you can write a pattern
@@ -64,6 +74,12 @@ sub import {
     warnings->import;
     Carp->import;
 
+    # TODO re-export the symbols accessible by user scripts from
+    # XML::Axk::Core.
+    do {
+        no strict 'refs';
+        my $destpkg = caller;
+    };
 }; #import()
 
 # }}}1

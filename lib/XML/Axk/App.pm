@@ -2,6 +2,8 @@ package XML::Axk::App;
 use XML::Axk::Base;
 use XML::Axk::Core;
 
+our $VERSION = '0.01';
+
 use Getopt::Long qw(GetOptionsFromArray :config gnu_getopt);
 
 #use Web::Query::LibXML;
@@ -132,7 +134,7 @@ __END__
 
 =head1 NAME
 
-XML::Axk::App - The great new XML::Axk!
+axk, and package XML::Axk::App - ack-like XML processor
 
 =head1 VERSION
 

@@ -6,6 +6,6 @@ post_file { say "post_file"; };
 post_all { say "post_all"; };
 
 my $x=42;
-on $x, sub { say 'Howdy!' };
+on $x, sub { say 'Howdy!'; say $foo; };
 #on 42, sub { die("oops from foo"); };
 #on { die("oops from foo"); } 42;
