@@ -45,7 +45,7 @@ my $scriptnumber = 0;
 # Loading =============================================================== {{{1
 
 # Load the script file given in $_[0], but do not execute it
-sub load_script {
+sub load_script_file {
     my $fn = shift;
     open(my $fh, '<', $fn) or die("Cannot open $fn");
     my $contents;
@@ -86,7 +86,7 @@ sub load_script {
     eval $contents;
     die "Could not parse '$fn': $@" if $@;
     say "Done";
-} #load_script
+} #load_script_file
 
 # }}}1
 # Running =============================================================== {{{1

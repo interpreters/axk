@@ -19,25 +19,46 @@ say "XML::Axk::App running";
 
 # === Command line parsing ============================================== {{{1
 
+# files/scripts to load, in order.
+# Each element is [isfile, text].
+my @Sources;
+
+my $dr_save_source = sub {
+    my ($which, $text) = @_;
+    push @Sources, [$which eq 'f', $text];
+}; # dr_save_source
+
 my %CMDLINE_OPTS = (
     # hash from internal name to array reference of
     # [getopt-name, getopt-options, optional default-value]
+    #   --- However, if default-value is a reference, it will be the
+    #   --- destination for that value.
     # They are listed in alphabetical order by option name,
     # lowercase before upper, although the code does not require that order.
 
-    DEBUG => ['d','|E|debug', false],
-    DEFS => ['D','|define:s%'],     # In %D, and text substitution
-    EVAL => ['e','|eval=s', ''],
+    #DUMP_VARS => ['d', '|dump-variables', false],
+    #DEBUG => ['D','|debug', false],
+    EVAL => ['e','|source=s@', $dr_save_source],
+    #RESTRICTED_EVAL => ['E','|exec=s@'],
+    SCRIPT => ['f','|file=s@', $dr_save_source],
+    # -F field separator?
     # -h and --help reserved
     # INPUT_FILENAME assigned by parse_command_line_into()
+    #INCLUDE => ['i','|include=s@'],
     KEEP_GOING => ['k','|keep-going',false],
+    #LIB => ['l','|load=s@'],
+    #LINT => ['L','|lint:s'],
     # --man reserved
-    OUTPUT_FILENAME => ['o','|output=s', ""],
-    SETS => ['s','|set:s%'],        # Extra data in %S, without text substitution
+    # OUTPUT_FILENAME => ['o','|output=s', ""], # conflict with gawk
+    #SANDBOX => ['S','|sandbox',false],
     # --usage reserved
-    PRINT_VERSION => ['v','|version'],
+    PRINT_VERSION => ['V','|version', false],
+    DEFS => ['v','|var:s%'],
     # -? reserved
 );
+# Note: first non-option argument is a program if
+# Note 2: Language version will default to the latest if any source provided
+# on the command line doesn't match /^\s*V\s*\d+[\s;]+/.
 
 sub parse_command_line {
     # Takes {into=>hash ref, from=>array ref}.  Fills in the hash with the
@@ -107,10 +128,26 @@ sub Main {
     say "Opts: " . Dumper(\%opts);
     say "Remaining: " . Dumper($lrArgs);
 
-    # TODO only load scripts
+    # Treat the first non-option arg as a script if appropriate
+    unless(@Sources) {
+        croak "No scripts to run" unless @$lrArgs;
+        push @Sources, [false, shift @$lrArgs];
+    }
+
+    say "Sources:\n" . Dumper(\@Sources);
+
+    # Use Getopt::Mixed to preserve order, per
+    # https://stackoverflow.com/a/18215293/2877364 ?
+    # --- No - using subroutines instead.
+
     say "Loading scripts";
-    foreach my $filename (@{$lrArgs}) {
-        XML::Axk::Core::load_script($filename);
+    foreach my $lrSource (@Sources) {
+        my ($is_file, $text) = @$lrSource;
+        if($is_file) {
+            XML::Axk::Core::load_script_file($text);
+        } else {
+            say "Can't yet load text: $text";   # TODO
+        }
     }
 
     say "Running";
