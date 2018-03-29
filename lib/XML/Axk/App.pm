@@ -134,13 +134,8 @@ sub Main {
         push @Sources, [false, shift @$lrArgs];
     }
 
-    say "Sources:\n" . Dumper(\@Sources);
+    say "Loading sources:\n" . Dumper(\@Sources);
 
-    # Use Getopt::Mixed to preserve order, per
-    # https://stackoverflow.com/a/18215293/2877364 ?
-    # --- No - using subroutines instead.
-
-    say "Loading scripts";
     foreach my $lrSource (@Sources) {
         my ($is_file, $text) = @$lrSource;
         if($is_file) {
@@ -151,8 +146,7 @@ sub Main {
     }
 
     say "Running";
-    XML::Axk::Core::run('/dev/null');
-        # /dev/null => Not yet loading files
+    XML::Axk::Core::run @$lrArgs;
     say "App:main done";
 
     return 0;

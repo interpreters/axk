@@ -103,31 +103,42 @@ sub run {
 
         say "Processing $infn";
 
+        # For now, just process lines rather than nodes
+        open(my $fh, "<", $infn) or die "Can't open $infn: $!";
+
         foreach my $drAction (@pre_file) {
             eval { &$drAction($infn) };   # which context are they evaluated in?
             die "pre_file: $@" if $@;
         }
 
-        foreach my $lrItem (@worklist) {
-            my ($refPattern, $refAction) = @$lrItem;
+        while(my $line = <$fh>) {
+            #say "Got $line";
+            foreach my $lrItem (@worklist) {
+                my ($refPattern, $refAction) = @$lrItem;
 
-            my $isMatch = true;    # TODO evaluate $refPattern
-            next unless $isMatch;
-            eval { &$refAction };   # which context are they evaluated in?
-            #next unless @!;
-            die "action: $@" if $@;
+                my $isMatch = true;    # TODO evaluate $refPattern
+                next unless $isMatch;
+                eval { &$refAction };   # which context are they evaluated in?
+                #next unless @!;
+                die "action: $@" if $@;
 
-            # Report errors
-        }
+                # Report errors
+            }
+        } # foreach line
 
         foreach my $drAction (@post_file) {
+            # TODO? make the last-seen node available to the action?
+            # Similar to awk, in which the END block sees the last line as $0.
             eval { &$drAction($infn) };   # which context are they evaluated in?
             die "post_file: $@" if $@;
         }
 
-    } #foreach filename
+        close($fh);
+
+    } #foreach input filename
 
     foreach my $drAction (@post_all) {
+        # TODO? pass the last-seen node? (see note above)
         eval { &$drAction };   # which context are they evaluated in?
         die "post_all: $@" if $@;
     }
