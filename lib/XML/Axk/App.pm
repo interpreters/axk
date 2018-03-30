@@ -145,6 +145,9 @@ sub Main {
         }
     }
 
+    # read from stdin if no input files specified.
+    push @$lrArgs, '-' unless @$lrArgs;
+
     say "Running";
     XML::Axk::Core::run @$lrArgs;
     say "App:main done";
@@ -183,6 +186,9 @@ Version 0.01
 =head1 OPTIONS
 
 None yet!
+
+A filename of C<-> represents standard input.  To actually process a file
+named C<->, you will need to use shell redirection (e.g., C<< axk < - >>).
 
 =head1 EXPORT
 

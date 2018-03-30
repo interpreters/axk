@@ -68,6 +68,11 @@ sub import {
     # Re-export
     my $target = caller;
     XML::Axk::ScriptAccessibleVars->import::into($target);
+    #say "** Imported vars into $target";
+    #do {
+    #    no strict 'refs';
+    #    say Dumper(\%{"${target}::"});
+    #};
 }; #import()
 
 # }}}1

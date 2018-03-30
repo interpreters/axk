@@ -9,10 +9,13 @@ use XML::Axk::Base;
 # Note: `our` variables are shared between all running scripts.
 our $foo = 'Hello, world!  from ScriptAccessibleVars';
 
+our $C;     # the current line
+our @F;     # The fields in the current line
+
 # }}}1
 # Export ========================================================= {{{1
 use parent 'Exporter';
-our @EXPORT = qw($foo);
+our @EXPORT = qw($foo $C @F);
 
 # }}}1
 1;

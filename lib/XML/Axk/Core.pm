@@ -47,7 +47,7 @@ my $scriptnumber = 0;
 # Load the script file given in $_[0], but do not execute it
 sub load_script_file {
     my $fn = shift;
-    open(my $fh, '<', $fn) or die("Cannot open $fn");
+    open(my $fh, '<', $fn) or croak("Cannot open $fn");
     my $contents;
     {
         local $/;
@@ -84,7 +84,7 @@ sub load_script_file {
     $contents = ($leader . $contents . $trailer);
     say "Loading $contents";
     eval $contents;
-    die "Could not parse '$fn': $@" if $@;
+    croak "Could not parse '$fn': $@" if $@;
     say "Done";
 } #load_script_file
 
@@ -93,26 +93,44 @@ sub load_script_file {
 
 # Run the loaded script(s).  Takes a list of input files.
 sub run {
+    use XML::Axk::ScriptAccessibleVars;     # uses are marked SAV below
 
     foreach my $drAction (@pre_all) {
         eval { &$drAction };   # which context are they evaluated in?
-        die "pre_all: $@" if $@;
+        croak "pre_all: $@" if $@;
     }
 
     foreach my $infn (@_) {
-
+        my $fh;
         say "Processing $infn";
 
+        # Clear the SAVs before each file for consistency
+        $C=undef;
+        @F=();
+
         # For now, just process lines rather than nodes
-        open(my $fh, "<", $infn) or die "Can't open $infn: $!";
+        if($infn eq '-') {  # stdin
+            open($fh, '<-') or croak "Can't open stdin!??!!";
+        } else {            # disk file
+            open($fh, "<", $infn) or croak "Can't open $infn: $!";
+        }
 
         foreach my $drAction (@pre_file) {
             eval { &$drAction($infn) };   # which context are they evaluated in?
-            die "pre_file: $@" if $@;
+            croak "pre_file: $@" if $@;
         }
 
         while(my $line = <$fh>) {
             #say "Got $line";
+
+            # Set SAV.  Can't use `local` because that separates our vars
+            # from those in X::A::SAV, which makes them inaccessible to
+            # the script that's running.
+            $C = $line;
+            @F = split ' ', $line;
+            #say "Symtab of X::A::C after localizing:\n",
+            #        Dumper(\%{XML::Axk::Core::});
+
             foreach my $lrItem (@worklist) {
                 my ($refPattern, $refAction) = @$lrItem;
 
@@ -120,7 +138,7 @@ sub run {
                 next unless $isMatch;
                 eval { &$refAction };   # which context are they evaluated in?
                 #next unless @!;
-                die "action: $@" if $@;
+                croak "action: $@" if $@;
 
                 # Report errors
             }
@@ -130,17 +148,17 @@ sub run {
             # TODO? make the last-seen node available to the action?
             # Similar to awk, in which the END block sees the last line as $0.
             eval { &$drAction($infn) };   # which context are they evaluated in?
-            die "post_file: $@" if $@;
+            croak "post_file: $@" if $@;
         }
 
-        close($fh);
+        close($fh) or warn "close failed: $!";
 
     } #foreach input filename
 
     foreach my $drAction (@post_all) {
         # TODO? pass the last-seen node? (see note above)
         eval { &$drAction };   # which context are they evaluated in?
-        die "post_all: $@" if $@;
+        croak "post_all: $@" if $@;
     }
 
 } #run()
