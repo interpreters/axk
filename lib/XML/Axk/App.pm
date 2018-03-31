@@ -136,10 +136,13 @@ sub Main {
 
     #say "Loading sources:\n" . Dumper(\@Sources);
 
+    my $core = XML::Axk::Core->new;
+    say 'Core: ' . Dumper($core);
+
     foreach my $lrSource (@Sources) {
         my ($is_file, $text) = @$lrSource;
         if($is_file) {
-            XML::Axk::Core::load_script_file($text);
+            $core->load_script_file($text);
         } else {
             say "Can't yet load text: $text";   # TODO
         }
@@ -149,7 +152,7 @@ sub Main {
     push @$lrArgs, '-' unless @$lrArgs;
 
     say "Running";
-    XML::Axk::Core::run @$lrArgs;
+    $core->run(@$lrArgs);
     say "App:main done";
 
     return 0;

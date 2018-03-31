@@ -29,6 +29,20 @@ use XML::Axk::Base;
 
 # Storage for routines defined by the user's scripts ==================== {{{1
 
+# TODO is there any way to make these instance variables and still have them
+# accessible to scripts, with reentrancy?  I suppose load_* could generate
+# a temporary package name, put a reference to the instance in that package,
+# and hardwire that package into each script.
+#   - Looks like I might be able to do this with Eval::Context, but I'm not
+#     sure if the package variables in X::A::V1 can reach those.
+#   * If I just stuff a reference to the Core instance in the symbol table
+#     of each script package at load time, the helpers in this file can use
+#     `caller` to get that package name and then find the instance in question.
+#   **Even better --- put a reference to the Core instance in a uniquely-named
+#     variable in XAC, then put an `our $_XAC = $X::A::C::<whatever>;` at the
+#     top of each script being evaluated.  Then use caller as noted in the
+#     previous point and ${"${caller}::_XAC} in the V1 routines.
+
 # Load these in the order they are defined in the scripts.
 our @pre_all = ();      # List of \& to run before reading the first file
 our @pre_file = ();     # List of \& to run before reading each file
@@ -38,7 +52,11 @@ our @post_all = ();     # List of \& to run after reading the last file
 
 # }}}1
 # Private vars ========================================================== {{{1
-# For giving each script a unique package name
+
+# For giving each instance of Core a unique package name (X::A::C::P<n>)
+my $_instance_number = 0;
+
+# For giving each script a unique package name - TODO move to XACPn
 my $scriptnumber = 0;
 
 # }}}1
@@ -46,6 +64,8 @@ my $scriptnumber = 0;
 
 # Load the script file given in $_[0], but do not execute it
 sub load_script_file {
+    my $self = shift;
+
     my $fn = shift;
     open(my $fh, '<', $fn) or croak("Cannot open $fn");
     my $contents;
@@ -77,6 +97,7 @@ sub load_script_file {
     # Put the user's script in its own package
     $leader = "package axk_script_$scriptnumber {\n" .
         "use XML::Axk::Base;\n" .
+        "our \$_XAC = \$@{[$self->global_name]};\n" .
         $leader;
     $trailer .= "\n};\n";
     ++$scriptnumber;
@@ -92,7 +113,7 @@ sub load_script_file {
 # Running =============================================================== {{{1
 
 # Check for matches
-sub isMatch {
+sub isMatch {   #static
     say "isMatch: ", Dumper(\@_);
     my ($refPattern, $refLine) = @_;
     my $ty = ref $refPattern;
@@ -106,11 +127,15 @@ sub isMatch {
     }
 } #isMatch()
 
-# Run the loaded script(s).  Takes a list of input files.
+# Run the loaded script(s).  Takes a list of inputs.  Strings are treated
+# as filenames; references to strings are treated as raw data to be treated
+# as if read off disk.
+
 sub run {
+    my $self = shift;
     use XML::Axk::ScriptAccessibleVars;     # uses are marked SAV below
 
-    foreach my $drAction (@pre_all) {
+    foreach my $drAction (@{$self->{pre_all}}) {
         eval { &$drAction };   # which context are they evaluated in?
         croak "pre_all: $@" if $@;
     }
@@ -128,9 +153,11 @@ sub run {
             open($fh, '<-') or croak "Can't open stdin!??!!";
         } else {            # disk file
             open($fh, "<", $infn) or croak "Can't open $infn: $!";
+                # if $infn is a reference, its contents will be used -
+                # http://www.perlmonks.org/?node_id=745018
         }
 
-        foreach my $drAction (@pre_file) {
+        foreach my $drAction (@{$self->{pre_file}}) {
             eval { &$drAction($infn) };   # which context are they evaluated in?
             croak "pre_file: $@" if $@;
         }
@@ -146,7 +173,7 @@ sub run {
             #say "Symtab of X::A::C after localizing:\n",
             #        Dumper(\%{XML::Axk::Core::});
 
-            foreach my $lrItem (@worklist) {
+            foreach my $lrItem (@{$self->{worklist}}) {
                 my ($refPattern, $refAction) = @$lrItem;
 
                 next unless isMatch($refPattern, \$line);
@@ -156,7 +183,7 @@ sub run {
             }
         } # foreach line
 
-        foreach my $drAction (@post_file) {
+        foreach my $drAction (@{$self->{post_file}}) {
             # TODO? make the last-seen node available to the action?
             # Similar to awk, in which the END block sees the last line as $0.
             eval { &$drAction($infn) };   # which context are they evaluated in?
@@ -167,13 +194,54 @@ sub run {
 
     } #foreach input filename
 
-    foreach my $drAction (@post_all) {
+    foreach my $drAction (@{$self->{post_all}}) {
         # TODO? pass the last-seen node? (see note above)
         eval { &$drAction };   # which context are they evaluated in?
         croak "post_all: $@" if $@;
     }
 
 } #run()
+
+# }}}1
+# Constructor and accessors ============================================= {{{1
+
+sub _globalname {   # static int->str
+    my $idx = shift;
+    return "XML::Axk::Core::_I${idx}";
+} #_globalname()
+
+sub new {
+    my $class = shift;
+
+    # Create the instance
+    my $data = {
+        _id => ++$_instance_number,
+        pre_all => [],
+        pre_file => [],
+        worklist => [],
+        post_file => [],
+        post_all => [],
+    };
+    my $self = bless($data, $class);
+
+    # Load this instance into the global namespace so the Vn packages can
+    # get at it
+    do {
+        no strict 'refs';
+        ${_globalname($_instance_number)} = $self;
+    };
+
+    return $self;
+} #new()
+
+# RO accessors
+sub id {
+    return shift->{_id};
+}
+
+sub global_name {
+    return _globalname(shift->{_id});
+}
 
 # }}}1
 
