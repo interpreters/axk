@@ -82,21 +82,21 @@ sub parse_command_line {
     );
 
     # Get options
-    GetOptionsFromArray(
+    my $opts_ok = GetOptionsFromArray(
         $params{from},                  # source array
         $hrOptsOut,                     # destination hash
         'usage|?', 'h|help', 'man',     # options we handle here
         map { $_->[0] . $_->[1] } values %CMDLINE_OPTS,     # options strs
-        )
-    or pod2usage(-verbose => 0, -exitval => EXIT_PARAM_ERR);    # unknown opt
+        );
 
     # Help, if requested
-    if(have('usage') || have('h') || have('man')) {
+    if(!$opts_ok || have('usage') || have('h') || have('man')) {
         # Only pull in the Pod routines if we actually need them.
         require Pod::Usage;
         require Pod::Find; # qw(pod_where);
         my $pod_input = Pod::Find::pod_where({-inc => 1}, __PACKAGE__);
-            # I think this was taking quite a bit of time.
+            # This takes a long time on my system.
+        Pod::Usage::pod2usage(-verbose => 0, -exitval => EXIT_PARAM_ERR, -input => $pod_input) if !$opts_ok;    # unknown opt
         Pod::Usage::pod2usage(-verbose => 0, -exitval => EXIT_OK, -input => $pod_input) if have('usage');
         Pod::Usage::pod2usage(-verbose => 1, -exitval => EXIT_OK, -input => $pod_input) if have('h');
         Pod::Usage::pod2usage(-verbose => 2, -exitval => EXIT_OK, -input => $pod_input) if have('man');
@@ -134,7 +134,7 @@ sub Main {
         push @Sources, [false, shift @$lrArgs];
     }
 
-    say "Loading sources:\n" . Dumper(\@Sources);
+    #say "Loading sources:\n" . Dumper(\@Sources);
 
     foreach my $lrSource (@Sources) {
         my ($is_file, $text) = @$lrSource;

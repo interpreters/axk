@@ -27,6 +27,7 @@ WriteMakefile(
         'Web::Query' => '0',
         'Web::Query::LibXML' => '0',
         'Import::Into' => '0',
+        'Object::Tiny::XS' => '0',
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'XML-Axk-*' },

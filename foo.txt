@@ -10,10 +10,14 @@ post_all { say "post_all"; };
 
 my $x=42;
 
-on $x, sub {
+perform {
     say "Line is=>$C";
     say join '; ', @F;
-};
+} 'only';
+
+perform {
+    say "xpather";
+} xpath "//quux";
 
 #on 42, sub { die("oops from foo"); };
 #on { die("oops from foo"); } 42;

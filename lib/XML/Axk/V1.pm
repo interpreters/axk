@@ -6,13 +6,15 @@ package XML::Axk::V1;
 use XML::Axk::Base;
 use XML::Axk::Core;
 
+use XML::Axk::Matcher::XPath;
+
 # Exports to the user's scripts ================================== {{{1
 
 use XML::Axk::ScriptAccessibleVars;     # To re-export
 
 # Exports from this file, exported by import()'s call to export_to_level()
 use parent 'Exporter';
-our @EXPORT = qw(pre_all pre_file on post_file post_all);
+our @EXPORT = qw(pre_all pre_file post_file post_all perform xpath);
 
 # }}}1
 # TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
@@ -39,24 +41,44 @@ sub post_all :prototype(&) {
 
 # }}}1
 # Definers for node actions ====================================== {{{1
+
 ## @function public on (pattern, &action)
-## The main way to define pattern/action pairs.
-## @params required pattern     The pattern
+## The main way to define pattern/action pairs.  This takes the action first
+## since that's how Perl's prototypes are set up the cleanest (block first).
 ## @params required &action     A block to execute when the pattern matches
-#sub on :prototype(\[$@%&]&) {
-sub on :prototype(*&) {
-    say Dumper(@_);
-    my $refPattern = shift;
+## @params required pattern     The pattern
+use Scalar::Util qw(reftype);
+sub perform :prototype(&@) {
+    say Dumper(\@_);
     my $drAction = shift;
+    my $refPattern = shift;
+#    eval {
+#        say "pattern: $refPattern";
+#        say "ref: " . Dumper(\$refPattern);
+#    };
+
+    $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
+
+    #$refPattern = \$refPattern unless ref($refPattern);
+    #   $ This didn't work, but I don't know why.
+
+#    say Dumper($refPattern);
     #my $refPattern = shift;
 
-    eval {
-        say 'in on() with ' . ref($refPattern) . ' = ' . $$refPattern;
-    };
-    say 'in on()';
-    push @XML::Axk::Core::worklist, [0, $drAction];
+#    eval {
+#        say 'in perform() with ' . reftype($refPattern) . ' to ' . Dumper($refPattern);
+#    };
+#    say 'in perform() ', Dumper($refPattern);
+    push @XML::Axk::Core::worklist, [$refPattern, $drAction];
+} #perform()
 
-} #on()
+# Make an XPath matcher
+sub xpath :prototype(@) {
+    my $refExpr = shift or croak("No expression provided!");
+    $refExpr = \( my $temp = $refExpr ) unless ref($refExpr);
+    my $matcher = XML::Axk::Matcher::XPath->new(xpath => $refExpr);
+    return $matcher;
+} #xpath()
 
 # }}}1
 # import ========================================================= {{{1

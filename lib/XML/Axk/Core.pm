@@ -91,6 +91,21 @@ sub load_script_file {
 # }}}1
 # Running =============================================================== {{{1
 
+# Check for matches
+sub isMatch {
+    say "isMatch: ", Dumper(\@_);
+    my ($refPattern, $refLine) = @_;
+    my $ty = ref $refPattern;
+    say "Pattern has type $ty";
+    if($ty eq 'Regexp') {
+        return $$refLine =~ $refPattern;
+    } elsif($ty eq 'SCALAR') {      # matches if the line contains the scalar
+        return index($$refLine, $$refPattern) != -1;
+    } else {    # todo check ::can('test')?
+        return $refPattern->test($refLine);       # TODO expand this
+    }
+} #isMatch()
+
 # Run the loaded script(s).  Takes a list of input files.
 sub run {
     use XML::Axk::ScriptAccessibleVars;     # uses are marked SAV below
@@ -134,13 +149,10 @@ sub run {
             foreach my $lrItem (@worklist) {
                 my ($refPattern, $refAction) = @$lrItem;
 
-                my $isMatch = true;    # TODO evaluate $refPattern
-                next unless $isMatch;
-                eval { &$refAction };   # which context are they evaluated in?
-                #next unless @!;
-                croak "action: $@" if $@;
+                next unless isMatch($refPattern, \$line);
 
-                # Report errors
+                eval { &$refAction };   # which context are they evaluated in?
+                croak "action: $@" if $@;
             }
         } # foreach line
 

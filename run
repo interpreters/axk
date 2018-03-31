@@ -1,2 +1,8 @@
 #!/bin/sh
-perl -Ilib bin/axk "$@"
+if [[ $# -eq 0 ]]; then
+    args=(-f foo.txt oneliner)
+else
+    args=("$@")
+fi
+
+perl -Ilib bin/axk "${args[@]}"
