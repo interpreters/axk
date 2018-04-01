@@ -10,7 +10,7 @@ use XML::Axk::Matcher::XPath;
 
 # Exports to the user's scripts ================================== {{{1
 
-use XML::Axk::ScriptAccessibleVars;     # To re-export
+#use XML::Axk::ScriptAccessibleVars;     # To re-export
 
 # Exports from this file, exported by import()'s call to export_to_level()
 use parent 'Exporter';
@@ -89,7 +89,7 @@ sub import {
 
     # Re-export
     my $target = caller;
-    XML::Axk::ScriptAccessibleVars->import::into($target);
+    #XML::Axk::ScriptAccessibleVars->import::into($target);
     #say "** Imported vars into $target";
     #do {
     #    no strict 'refs';

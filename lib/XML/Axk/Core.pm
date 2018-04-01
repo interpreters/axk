@@ -53,9 +53,6 @@ our @post_all = ();     # List of \& to run after reading the last file
 # }}}1
 # Private vars ========================================================== {{{1
 
-# For giving each instance of Core a unique package name (X::A::C::P<n>)
-my $_instance_number = 0;
-
 # For giving each script a unique package name - TODO move to XACPn
 my $scriptnumber = 0;
 
@@ -97,7 +94,8 @@ sub load_script_file {
     # Put the user's script in its own package
     $leader = "package axk_script_$scriptnumber {\n" .
         "use XML::Axk::Base;\n" .
-        "our \$_XAC = \$@{[$self->global_name]};\n" .
+        "use XML::Axk::Vars::Inject;\n" .
+        "XML::Axk::Vars::Inject->inject(\$" . $self->global_name . ");\n" .
         $leader;
     $trailer .= "\n};\n";
     ++$scriptnumber;
@@ -133,7 +131,6 @@ sub isMatch {   #static
 
 sub run {
     my $self = shift;
-    use XML::Axk::ScriptAccessibleVars;     # uses are marked SAV below
 
     foreach my $drAction (@{$self->{pre_all}}) {
         eval { &$drAction };   # which context are they evaluated in?
@@ -145,8 +142,8 @@ sub run {
         say "Processing $infn";
 
         # Clear the SAVs before each file for consistency
-        $C=undef;
-        @F=();
+        $self->{sav}->{C}=undef;
+        $self->{sav}->{F}=[];       # sav holds arrayrefs
 
         # For now, just process lines rather than nodes
         if($infn eq '-') {  # stdin
@@ -168,8 +165,8 @@ sub run {
             # Set SAV.  Can't use `local` because that separates our vars
             # from those in X::A::SAV, which makes them inaccessible to
             # the script that's running.
-            $C = $line;
-            @F = split ' ', $line;
+            $self->{sav}->{C} = $line;
+            @{$self->{sav}->{F}} = split ' ', $line;
             #say "Symtab of X::A::C after localizing:\n",
             #        Dumper(\%{XML::Axk::Core::});
 
@@ -203,17 +200,20 @@ sub run {
 } #run()
 
 # }}}1
-# Constructor and accessors ============================================= {{{1
+# Constructor, private data, and accessors ============================== {{{1
 
 sub _globalname {   # static int->str
     my $idx = shift;
     return "XML::Axk::Core::_I${idx}";
 } #_globalname()
 
+# For giving each instance of Core a unique package name (X::A::C::P<n>)
+my $_instance_number = 0;
+
 sub new {
     my $class = shift;
 
-    # Create the instance
+    # Create the instance.
     my $data = {
         _id => ++$_instance_number,
         pre_all => [],
@@ -221,6 +221,7 @@ sub new {
         worklist => [],
         post_file => [],
         post_all => [],
+        sav => {},      # X::A::SAV will add elements to this hash
     };
     my $self = bless($data, $class);
 
