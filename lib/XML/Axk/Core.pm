@@ -116,11 +116,13 @@ sub isMatch {   #static
     #say "isMatch: ", Dumper(\@_);
     my ($refPattern, $refLine) = @_;
     my $ty = ref $refPattern;
-    #say "Pattern has type $ty";
+
     if($ty eq 'Regexp') {
         return $$refLine =~ $refPattern;
+
     } elsif($ty eq 'SCALAR') {      # matches if the line contains the scalar
         return index($$refLine, $$refPattern) != -1;
+
     } else {    # todo check ::can('test')?
         return $refPattern->test($refLine);       # TODO expand this
     }
@@ -143,14 +145,8 @@ sub run {
         say "Processing $infn";
 
         # Clear the SAVs before each file for consistency.
-        # TODO replace these with accesses to our own ties to these variables
-        # for consistency and clarity.
-        $self->{sav}->{C}=undef;
-
-        # Clear @F without replacing it so we don't break the tied variable's
-        # reference to it.
-        my @F = @{$self->{sav}->{F}};
-        $#F = -1;   # empty @F without replacing it - http://www.perlmonks.org/?node_id=2264
+        $self->set_sav('$C',undef);
+        $self->set_sav('@F');
 
         # For now, just process lines rather than nodes
         if($infn eq '-') {  # stdin
@@ -172,12 +168,10 @@ sub run {
             #say "Got $line";
 
             # Set the SAV values that can be accessed via ties in the user's scripts
-            $self->{sav}->{C} = $line;  #
+            $self->set_sav('$C', $line);
 
-            splice(@F);
-            #$#F = -1;   # replace contents of @F without moving it
-            push @{$self->{sav}->{F}}, split(' ', $line);
-            # doesn't work => push @F, split(' ', $line);
+            my @fields = split ' ', $line;
+            $self->set_sav('@F', \@fields);
 
             #say "core: " , Dumper($self);
             say join ' ', 'main loop $C',\$self->{sav}->{C},'@F',$self->{sav}->{F};
@@ -234,7 +228,8 @@ sub new {
         worklist => [],
         post_file => [],
         post_all => [],
-        sav => {},      # X::A::SAV will add elements to this hash
+        sav => {},      # X::A::V::Inject will add elements to this hash
+        sav_ties => {}, # ditto --- the actual blessed references
     };
     my $self = bless($data, $class);
 
@@ -256,6 +251,48 @@ sub id {
 sub global_name {
     return _globalname(shift->{_id});
 }
+
+# Setter for script-accessible vars.
+# Usage:
+#   Scalar: $core->set_sav('$foo',"new_value")
+#   Array clear: $core->set_sav('@foo')
+#   Array splice: $core->set_sav('@foo',\(new_list)[, offset[, length]])
+sub set_sav {
+    my $self = shift;
+    my $var = shift;
+    my $refTie = $self->{sav_ties}->{substr($var, 1)};
+
+    if(substr($var, 0, 1) eq '$') {
+        #say "Setting scalar $var";
+        $refTie->STORE(shift);
+
+    } elsif(substr($var, 0, 1) eq '@') {
+        #say "Setting array $var";
+        if(@_ && (ref $_[0] eq 'ARRAY')) {    # array splice
+            my $lrNew = shift;
+
+            # offset and length are not optional if LIST is provided.
+            # Set the defaults - adapted from perldoc perltie and from
+            # Tie::StdArray.
+            my $ofs = shift || 0;
+            my $len = shift // (    # // so caller can pass 0
+                $ofs < 0 ?
+                -$ofs :
+                ($refTie->FETCHSIZE() - $ofs)
+            );
+
+            #say 'Before splice: ' . Dumper($refTie);
+            $refTie->SPLICE(@_, $ofs, $len, @{$lrNew});
+            #say 'After splice: ' . Dumper($refTie);
+        } else {    # special-case array clear
+            #say ' ... clearing';
+            $refTie->CLEAR();
+        }
+
+    } else {
+        croak "Can't set_sav unknown var type $var";
+    }
+} #set_sav()
 
 # }}}1
 

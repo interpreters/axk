@@ -76,16 +76,6 @@ sub perform :prototype(&@) {
 
     $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
 
-    #$refPattern = \$refPattern unless ref($refPattern);
-    #   $ This didn't work, but I don't know why.
-
-#    say Dumper($refPattern);
-    #my $refPattern = shift;
-
-#    eval {
-#        say 'in perform() with ' . reftype($refPattern) . ' to ' . Dumper($refPattern);
-#    };
-#    say 'in perform() ', Dumper($refPattern);
     my $core = _core or croak("Can't find core in perform");
     push @{$core->{worklist}}, [$refPattern, $drAction];
 } #perform()

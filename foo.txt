@@ -4,7 +4,7 @@ pre_all {
     say "pre_all";
     say $foo if true;
 };
-pre_file { say "pre_file from: " . Dumper(shift); };
+pre_file { say "pre_file from: ", shift; };
 post_file { say "post_file"; };
 post_all { say "post_all"; };
 
@@ -14,7 +14,11 @@ perform {
     say join ' ', 'within perform $C',\$C,'@F',\@F;
     say "Line is=>$C";
     say join '; ', @F;
-} 'only';
+} 'line!';
+
+perform {
+    say "Always";
+} qr/.?/;
 
 perform {
     say "xpather";

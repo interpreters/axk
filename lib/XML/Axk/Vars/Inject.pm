@@ -5,6 +5,7 @@
 package XML::Axk::Vars::Inject;
 use XML::Axk::Base;
 use Import::Into;
+use vars;
 
 use XML::Axk::Vars::Scalar;
 use XML::Axk::Vars::Array;
@@ -29,32 +30,17 @@ sub inject {
     my $instance = shift or croak("No Core instance provided to XAVI::inject");
     my $target = caller;
 
+    # Link the variables in $target to $instance
     do {
         no strict 'refs';
-        #say "Injecting into $target\n" . Dumper(\%{"${target}::"});
-        #say 'tie SAV: ',Dumper($instance);
-    };
-
-    # Create variables in $target linked to $instance
-    do {
-        no strict 'refs';
-            # This doesn't work:
-            #local $C;   # don't want to share this with other instances.
-            #tie $C, 'XML::Axk::Vars::Scalar', $instance, "C";
-            #${"${target}::C"} = $C;     # nope - tying doesn't propagate across assignment
-
         # *{"${target}::C"} = '';     # not the same as our package var - ** Do we need this?
-        tie ${"${target}::C"}, 'XML::Axk::Vars::Scalar', $instance, "C";
-        #say "$target is:\n" . Dumper(\%{"${target}::"});
+        $instance->{sav_ties}->{C} =
+            tie ${"${target}::C"}, 'XML::Axk::Vars::Scalar', $instance, "C";
 
-        #local @F;
-        tie @{"${target}::F"}, 'XML::Axk::Vars::Array', $instance, "F";
+        $instance->{sav_ties}->{F} =
+            tie @{"${target}::F"}, 'XML::Axk::Vars::Array', $instance, "F";
 
-        say join ' ', 'inject->import $C', \${"${target}::C"}, '@F',\@{"${target}::F"};
     };
-
-    #XML::Axk::Vars::Scalar->import::into($target, $instance, "C");
-    #XML::Axk::Vars::Array->import::into($target, $instance, "F");
 
 } #import()
 
