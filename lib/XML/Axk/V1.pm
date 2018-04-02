@@ -23,20 +23,37 @@ our @EXPORT = qw(pre_all pre_file post_file post_all perform xpath);
 
 # }}}1
 # Definers for special-case actions ============================== {{{1
+
+# Accessor
+sub _core {
+    my $home = caller(1);
+    #say "_core from $home";
+    no strict 'refs';
+    my $core = ${"${home}::_AxkCore"};
+    return $core;
+} #_core()
+
 sub pre_all :prototype(&) {
-    push @XML::Axk::Core::pre_all, shift;
+    my $core = _core or croak("Can't find core in pre_all");
+    #say "core: " . Dumper($core);
+    #say Dumper($core->{pre_all});
+    #say Dumper(@{$core->{pre_all}});
+    push @{$core->{pre_all}}, shift;
 } #pre_all()
 
 sub pre_file :prototype(&) {
-    push @XML::Axk::Core::pre_file, shift;
+    my $core = _core or croak("Can't find core in pre_file");
+    push @{$core->{pre_file}}, shift;
 } #pre_file()
 
 sub post_file :prototype(&) {
-    push @XML::Axk::Core::post_file, shift;
+    my $core = _core or croak("Can't find core in post_file");
+    push @{$core->{post_file}}, shift;
 } #post_file()
 
 sub post_all :prototype(&) {
-    push @XML::Axk::Core::post_all, shift;
+    my $core = _core or croak("Can't find core in post_all");
+    push @{$core->{post_all}}, shift;
 } #post_all()
 
 # }}}1
@@ -49,7 +66,7 @@ sub post_all :prototype(&) {
 ## @params required pattern     The pattern
 use Scalar::Util qw(reftype);
 sub perform :prototype(&@) {
-    say Dumper(\@_);
+    #say Dumper(\@_);
     my $drAction = shift;
     my $refPattern = shift;
 #    eval {

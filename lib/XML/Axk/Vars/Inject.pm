@@ -7,7 +7,7 @@ use XML::Axk::Base;
 use Import::Into;
 
 use XML::Axk::Vars::Scalar;
-#use XML::Axk::Vars::Array;
+use XML::Axk::Vars::Array;
 
 # Variables ====================================================== {{{1
 # Note: `our` variables are shared between all running scripts.
@@ -31,8 +31,8 @@ sub inject {
 
     do {
         no strict 'refs';
-        say "Injecting into $target\n" . Dumper(\%{"${target}::"});
-        say 'tie SAV: ',Dumper($instance);
+        #say "Injecting into $target\n" . Dumper(\%{"${target}::"});
+        #say 'tie SAV: ',Dumper($instance);
     };
 
     # Create variables in $target linked to $instance
@@ -41,7 +41,7 @@ sub inject {
         local $C;   # don't want to share this with other instances.
         tie $C, 'XML::Axk::Vars::Scalar', $instance, "C";
         ${"${target}::C"} = $C;
-        say "$target is:\n" . Dumper(\%{"${target}::"});
+        #say "$target is:\n" . Dumper(\%{"${target}::"});
 
         local @F;
         tie @F, 'XML::Axk::Vars::Array', $instance, "F";

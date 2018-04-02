@@ -15,12 +15,12 @@ use parent -norequire => 'Tie::StdArray';
 # @param $instance  XML::Axk::Core instance
 # @param $varname   Name of the new variable
 sub TIEARRAY {
-    say 'TIEARRAY: ', Dumper(\@_);
+    #say 'TIEARRAY: ', Dumper(\@_);
     my $class = shift;
     my $instance = shift or croak('No instance');
     my $varname = shift or croak("No varname");     # the var to create
 
-    say "Tying array \$$varname to $instance";
+    #say "Tying array \$$varname to $instance";
     $instance->{sav}->{$varname} = [];  # sav->$varname stores an arrayref
     return bless $instance->{sav}->{$varname}, $class;
 } #TIEARRAY()

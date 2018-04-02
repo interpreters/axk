@@ -95,7 +95,8 @@ sub load_script_file {
     $leader = "package axk_script_$scriptnumber {\n" .
         "use XML::Axk::Base;\n" .
         "use XML::Axk::Vars::Inject;\n" .
-        "XML::Axk::Vars::Inject->inject(\$" . $self->global_name . ");\n" .
+        'our $_AxkCore = $' . $self->global_name . ";\n" .
+        "XML::Axk::Vars::Inject->inject(\$_AxkCore);\n" .
         $leader;
     $trailer .= "\n};\n";
     ++$scriptnumber;
@@ -104,7 +105,7 @@ sub load_script_file {
     say "Loading $contents";
     eval $contents;
     croak "Could not parse '$fn': $@" if $@;
-    say "Done";
+    #say "Done";
 } #load_script_file
 
 # }}}1
@@ -112,10 +113,10 @@ sub load_script_file {
 
 # Check for matches
 sub isMatch {   #static
-    say "isMatch: ", Dumper(\@_);
+    #say "isMatch: ", Dumper(\@_);
     my ($refPattern, $refLine) = @_;
     my $ty = ref $refPattern;
-    say "Pattern has type $ty";
+    #say "Pattern has type $ty";
     if($ty eq 'Regexp') {
         return $$refLine =~ $refPattern;
     } elsif($ty eq 'SCALAR') {      # matches if the line contains the scalar

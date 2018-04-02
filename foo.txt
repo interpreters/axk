@@ -2,7 +2,7 @@ say "hello from foo!";
 V1
 pre_all {
     say "pre_all";
-    #say $foo if true;
+    say $foo if true;
 };
 pre_file { say "pre_file from: " . Dumper(shift); };
 post_file { say "post_file"; };

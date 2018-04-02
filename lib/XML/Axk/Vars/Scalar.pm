@@ -15,12 +15,12 @@ use parent -norequire => 'Tie::StdScalar';
 # @param $instance  XML::Axk::Core instance
 # @param $varname   Name of the new variable
 sub TIESCALAR {
-    say 'TIESCALAR: ', Dumper(\@_);
+    #say 'TIESCALAR: ', Dumper(\@_);
     my $class = shift;
     my $instance = shift or croak('No instance');
     my $varname = shift or croak("No varname");     # the var to create
 
-    say "Tying scalar \$$varname to $instance";
+    #say "Tying scalar \$$varname to $instance";
     $instance->{sav}->{$varname} = undef;
     return bless \($instance->{sav}->{$varname}), $class;
 } #TIESCALAR()

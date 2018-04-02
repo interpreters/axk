@@ -120,13 +120,13 @@ sub parse_command_line {
 # Command-line runner.  Call as XML::Axk::App::Main(\@ARGV).
 sub Main {
     my $lrArgs = shift;
-    say 'Args:' . Dumper($lrArgs);
+    #say 'Args:' . Dumper($lrArgs);
 
     my %opts;
     parse_command_line(from => $lrArgs, into => \%opts);
 
-    say "Opts: " . Dumper(\%opts);
-    say "Remaining: " . Dumper($lrArgs);
+    #say "Opts: " . Dumper(\%opts);
+    #say "Remaining: " . Dumper($lrArgs);
 
     # Treat the first non-option arg as a script if appropriate
     unless(@Sources) {
@@ -137,7 +137,7 @@ sub Main {
     #say "Loading sources:\n" . Dumper(\@Sources);
 
     my $core = XML::Axk::Core->new;
-    say 'Core: ' . Dumper($core);
+    #say 'Core: ' . Dumper($core);
 
     foreach my $lrSource (@Sources) {
         my ($is_file, $text) = @$lrSource;
