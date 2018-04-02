@@ -10,24 +10,41 @@ use vars;
 use XML::Axk::Vars::Scalar;
 use XML::Axk::Vars::Array;
 
-# Variables ====================================================== {{{1
-# Note: `our` variables are shared between all running scripts.
-our $foo = 'Hello, world!  from ScriptAccessibleVars';
+# Config: the variables to create
+my @vars = qw($C @F);
 
-our $C;     # the current line
-our @F;     # The fields in the current line
+# Helpers ======================================================== {{{2
 
-# }}}1
+sub inject_var {
+    my ($instance, $target, $varname) = @_;
+    my $basename = substr($varname, 1);
+    no strict 'refs';
+
+    if(substr($varname, 0, 1) eq '$') {         # scalar
+        $instance->{sav_ties}->{$basename} =
+            tie(${"${target}::${basename}"}, 'XML::Axk::Vars::Scalar',
+                $instance, $basename);
+
+    } elsif(substr($varname, 0, 1) eq '@') {    # array
+        $instance->{sav_ties}->{$basename} =
+            tie(@{"${target}::${basename}"}, 'XML::Axk::Vars::Array',
+                $instance, $basename);
+
+    } else {
+        croak "Can't inject unknown var type $varname";
+    }
+    #say "Injected $varname into $target and $instance";
+} #inject_var()
+
+# }}}2
 # Export ========================================================= {{{1
-use parent 'Exporter';
-our @EXPORT = qw($foo);
 
 # At compile time, just create the symbols but don't give them values
 # or tie them.
 sub import {
-    __PACKAGE__->export_to_level(1);
-    vars->import::into(1, qw($C @F));
+    vars->import::into(1, @vars);
 } #import()
+
 
 # At run-time, associated them with the values.
 sub inject {
@@ -36,18 +53,9 @@ sub inject {
     my $target = caller;
 
     # Link the variables in $target to $instance
-    do {
-        no strict 'refs';
-        # *{"${target}::C"} = '';     # not the same as our package var - ** Do we need this?
-        $instance->{sav_ties}->{C} =
-            tie ${"${target}::C"}, 'XML::Axk::Vars::Scalar', $instance, "C";
+    inject_var $instance, $target, $_ foreach @vars;
 
-        $instance->{sav_ties}->{F} =
-            tie @{"${target}::F"}, 'XML::Axk::Vars::Array', $instance, "F";
-
-    };
-
-} #import()
+} #inject()
 
 # }}}1
 1;

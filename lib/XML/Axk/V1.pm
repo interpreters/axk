@@ -8,20 +8,9 @@ use XML::Axk::Core;
 
 use XML::Axk::Matcher::XPath;
 
-# Exports to the user's scripts ================================== {{{1
-
-#use XML::Axk::ScriptAccessibleVars;     # To re-export
-
-# Exports from this file, exported by import()'s call to export_to_level()
 use parent 'Exporter';
 our @EXPORT = qw(pre_all pre_file post_file post_all perform xpath);
 
-# }}}1
-# TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
-# attributes, namespaces, ... .  This is essentially a DSL for all the ways
-# you can write a pattern
-
-# }}}1
 # Definers for special-case actions ============================== {{{1
 
 # Accessor
@@ -69,10 +58,6 @@ sub perform :prototype(&@) {
     #say Dumper(\@_);
     my $drAction = shift;
     my $refPattern = shift;
-#    eval {
-#        say "pattern: $refPattern";
-#        say "ref: " . Dumper(\$refPattern);
-#    };
 
     $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
 
@@ -89,21 +74,9 @@ sub xpath :prototype(@) {
 } #xpath()
 
 # }}}1
-# import ========================================================= {{{1
-sub import {
-
-    # Copy symbols listed in @EXPORT first, in case @_ gets trashed later
-    shift->export_to_level(1, @_);   # from Exporter
-
-    # Re-export
-    my $target = caller;
-    #XML::Axk::ScriptAccessibleVars->import::into($target);
-    #say "** Imported vars into $target";
-    #do {
-    #    no strict 'refs';
-    #    say Dumper(\%{"${target}::"});
-    #};
-}; #import()
+# TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
+# attributes, namespaces, ... .  This is essentially a DSL for all the ways
+# you can write a pattern
 
 # }}}1
 1;

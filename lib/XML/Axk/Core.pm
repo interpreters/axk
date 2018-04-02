@@ -102,7 +102,7 @@ sub load_script_file {
     ++$scriptnumber;
 
     $contents = ($leader . $contents . $trailer);
-    #say "Loading $contents";
+    #say "****************Loading $contents\n****************";
     eval $contents;
     croak "Could not parse '$fn': $@" if $@;
     #say "Done";
@@ -162,20 +162,19 @@ sub run {
             croak "pre_file: $@" if $@;
         }
 
-        my $FNR = 0;
+        my $FNR = 0;    # TODO make this an SAV
         while(my $line = <$fh>) {
-            say 'Line ', ++$FNR, '==========================';
+            say "\nLine ", ++$FNR, '==========================';
             #say "Got $line";
 
-            # Set the SAV values that can be accessed via ties in the user's scripts
+            # Send the SAV values to the user's scripts
             $self->set_sav('$C', $line);
 
             my @fields = split ' ', $line;
             $self->set_sav('@F', \@fields);
 
-            #say "core: " , Dumper($self);
-            say join ' ', 'main loop $C',\$self->{sav}->{C},'@F',$self->{sav}->{F};
-                # @F is a $ because {sav} holds F as a \@
+            #say join ' ', 'main loop $C',\$self->{sav}->{C},
+            #       '@F',\@{$self->{sav}->{F}};
 
             foreach my $lrItem (@{$self->{worklist}}) {
                 my ($refPattern, $refAction) = @$lrItem;
@@ -230,6 +229,10 @@ sub new {
         post_all => [],
         sav => {},      # X::A::V::Inject will add elements to this hash
         sav_ties => {}, # ditto --- the actual blessed references
+        # NOTE: keys in sav and sav_ties are names without sigils.  I am not
+        # sure whether this is more or less confusing than including the
+        # sigils in the keys!  In any event, as a design decision, only one
+        # sigil will be used for each name.
     };
     my $self = bless($data, $class);
 

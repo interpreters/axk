@@ -15,8 +15,6 @@ use constant EXIT_OK 		=> 0;	# success
 use constant EXIT_PROC_ERR 	=> 1;	# error during processing
 use constant EXIT_PARAM_ERR	=> 2;	# couldn't understand the command line
 
-say "XML::Axk::App running";
-
 # === Command line parsing ============================================== {{{1
 
 # files/scripts to load, in order.
