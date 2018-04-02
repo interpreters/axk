@@ -1,0 +1,6 @@
+V1
+perform {
+    say __FILE__, " sees line $C";
+    say __FILE__, ' ', join '; ', @F;
+} qr/.?/;
+
