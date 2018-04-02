@@ -102,7 +102,7 @@ sub load_script_file {
     ++$scriptnumber;
 
     $contents = ($leader . $contents . $trailer);
-    say "Loading $contents";
+    #say "Loading $contents";
     eval $contents;
     croak "Could not parse '$fn': $@" if $@;
     #say "Done";
@@ -142,9 +142,15 @@ sub run {
         my $fh;
         say "Processing $infn";
 
-        # Clear the SAVs before each file for consistency
+        # Clear the SAVs before each file for consistency.
+        # TODO replace these with accesses to our own ties to these variables
+        # for consistency and clarity.
         $self->{sav}->{C}=undef;
-        $self->{sav}->{F}=[];       # sav holds arrayrefs
+
+        # Clear @F without replacing it so we don't break the tied variable's
+        # reference to it.
+        my @F = @{$self->{sav}->{F}};
+        $#F = -1;   # empty @F without replacing it - http://www.perlmonks.org/?node_id=2264
 
         # For now, just process lines rather than nodes
         if($infn eq '-') {  # stdin
@@ -160,16 +166,22 @@ sub run {
             croak "pre_file: $@" if $@;
         }
 
+        my $FNR = 0;
         while(my $line = <$fh>) {
+            say 'Line ', ++$FNR, '==========================';
             #say "Got $line";
 
-            # Set SAV.  Can't use `local` because that separates our vars
-            # from those in X::A::SAV, which makes them inaccessible to
-            # the script that's running.
-            $self->{sav}->{C} = $line;
-            @{$self->{sav}->{F}} = split ' ', $line;
-            #say "Symtab of X::A::C after localizing:\n",
-            #        Dumper(\%{XML::Axk::Core::});
+            # Set the SAV values that can be accessed via ties in the user's scripts
+            $self->{sav}->{C} = $line;  #
+
+            splice(@F);
+            #$#F = -1;   # replace contents of @F without moving it
+            push @{$self->{sav}->{F}}, split(' ', $line);
+            # doesn't work => push @F, split(' ', $line);
+
+            #say "core: " , Dumper($self);
+            say join ' ', 'main loop $C',\$self->{sav}->{C},'@F',$self->{sav}->{F};
+                # @F is a $ because {sav} holds F as a \@
 
             foreach my $lrItem (@{$self->{worklist}}) {
                 my ($refPattern, $refAction) = @$lrItem;

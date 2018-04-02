@@ -38,14 +38,19 @@ sub inject {
     # Create variables in $target linked to $instance
     do {
         no strict 'refs';
-        local $C;   # don't want to share this with other instances.
-        tie $C, 'XML::Axk::Vars::Scalar', $instance, "C";
-        ${"${target}::C"} = $C;
+            # This doesn't work:
+            #local $C;   # don't want to share this with other instances.
+            #tie $C, 'XML::Axk::Vars::Scalar', $instance, "C";
+            #${"${target}::C"} = $C;     # nope - tying doesn't propagate across assignment
+
+        # *{"${target}::C"} = '';     # not the same as our package var - ** Do we need this?
+        tie ${"${target}::C"}, 'XML::Axk::Vars::Scalar', $instance, "C";
         #say "$target is:\n" . Dumper(\%{"${target}::"});
 
-        local @F;
-        tie @F, 'XML::Axk::Vars::Array', $instance, "F";
-        @{"${target}::F"} = @F;
+        #local @F;
+        tie @{"${target}::F"}, 'XML::Axk::Vars::Array', $instance, "F";
+
+        say join ' ', 'inject->import $C', \${"${target}::C"}, '@F',\@{"${target}::F"};
     };
 
     #XML::Axk::Vars::Scalar->import::into($target, $instance, "C");

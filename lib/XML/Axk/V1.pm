@@ -86,7 +86,8 @@ sub perform :prototype(&@) {
 #        say 'in perform() with ' . reftype($refPattern) . ' to ' . Dumper($refPattern);
 #    };
 #    say 'in perform() ', Dumper($refPattern);
-    push @XML::Axk::Core::worklist, [$refPattern, $drAction];
+    my $core = _core or croak("Can't find core in perform");
+    push @{$core->{worklist}}, [$refPattern, $drAction];
 } #perform()
 
 # Make an XPath matcher

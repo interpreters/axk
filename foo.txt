@@ -11,6 +11,7 @@ post_all { say "post_all"; };
 my $x=42;
 
 perform {
+    say join ' ', 'within perform $C',\$C,'@F',\@F;
     say "Line is=>$C";
     say join '; ', @F;
 } 'only';
