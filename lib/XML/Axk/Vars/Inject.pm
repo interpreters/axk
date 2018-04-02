@@ -20,9 +20,14 @@ our @F;     # The fields in the current line
 # }}}1
 # Export ========================================================= {{{1
 use parent 'Exporter';
-our @EXPORT = qw($foo $C @F);
+our @EXPORT = qw($foo);
+
 # At compile time, just create the symbols but don't give them values
 # or tie them.
+sub import {
+    __PACKAGE__->export_to_level(1);
+    vars->import::into(1, qw($C @F));
+} #import()
 
 # At run-time, associated them with the values.
 sub inject {
