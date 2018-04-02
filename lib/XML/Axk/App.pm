@@ -43,7 +43,7 @@ my %CMDLINE_OPTS = (
     # -h and --help reserved
     # INPUT_FILENAME assigned by parse_command_line_into()
     #INCLUDE => ['i','|include=s@'],
-    KEEP_GOING => ['k','|keep-going',false],
+    #KEEP_GOING => ['k','|keep-going',false], #not in gawk
     #LIB => ['l','|load=s@'],
     #LINT => ['L','|lint:s'],
     # --man reserved
@@ -53,6 +53,10 @@ my %CMDLINE_OPTS = (
     PRINT_VERSION => ['V','|version', false],
     DEFS => ['v','|var:s%'],
     # -? reserved
+
+    # Long-only options that are specific to axk.
+    SHOW => ['show',':s@'],     # which debugging output to print.
+                                # TODO make it a hash instead?
 );
 # Note: first non-option argument is a program if
 # Note 2: Language version will default to the latest if any source provided
@@ -134,7 +138,9 @@ sub Main {
 
     #say "Loading sources:\n" . Dumper(\@Sources);
 
-    my $core = XML::Axk::Core->new;
+    my $core = XML::Axk::Core->new(\%opts);
+        # Note: core doesn't copy the provided options, so make sure
+        # they stick around as long as $core does.
     #say 'Core: ' . Dumper($core);
 
     foreach my $lrSource (@Sources) {

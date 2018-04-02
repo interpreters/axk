@@ -102,7 +102,12 @@ sub load_script_file {
     ++$scriptnumber;
 
     $contents = ($leader . $contents . $trailer);
-    #say "****************Loading $contents\n****************";
+
+    if($self->{options}->{SHOW} && ref $self->{options}->{SHOW} eq 'ARRAY' &&
+       grep /^source$/i, @{$self->{options}->{SHOW}}) {
+        say "****************Loading:\n$contents\n****************";
+    }
+
     eval $contents;
     croak "Could not parse '$fn': $@" if $@;
     #say "Done";
@@ -144,8 +149,19 @@ sub run {
         my $fh;
         say "Processing $infn";
 
+        # TODO FIXME - this only works for exactly one package, because
+        # each package has its own ties.  Also, if no packages are loaded,
+        # the SAVs don't exist.  Fix this.
+        #
+        # It could be worse - `./run -f ex/1.axk -f ex/2.axk ex/oneliner`
+        # actually works.  However, running script 2 first does not -
+        # in `./run -f ex/2.axk -f ex/1.axk ex/oneliner`, script 2 (which
+        # runs first) doesn't see anything in @F.
+        # I think I might need to write custom ties that store \($core->{sav})
+        # and dereference into it to write or read.
+
         # Clear the SAVs before each file for consistency.
-        $self->set_sav('$C',undef);
+        $self->set_sav('$C', undef);
         $self->set_sav('@F');
 
         # For now, just process lines rather than nodes
@@ -218,10 +234,12 @@ my $_instance_number = 0;
 
 sub new {
     my $class = shift;
+    my $hrOpts = shift // {};
 
     # Create the instance.
     my $data = {
         _id => ++$_instance_number,
+        options => $hrOpts,
         pre_all => [],
         pre_file => [],
         worklist => [],
