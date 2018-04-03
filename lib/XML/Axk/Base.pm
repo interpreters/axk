@@ -32,7 +32,7 @@ BEGIN {
 sub import {
     my $target = caller;
 
-    # Copy symbols listed in @EXPORT first, in case @_ gets trashed later
+    # Copy symbols listed in @EXPORT first, in case @_ gets trashed later.
     XML::Axk::Base->export_to_level(1, @_);
 
     # Re-export pragmas

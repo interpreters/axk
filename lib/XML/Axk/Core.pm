@@ -9,24 +9,6 @@
 package XML::Axk::Core;
 use XML::Axk::Base qw(:default any);
 
-## # a demo {{{1
-## say true;
-## our $x;
-## say \$x;
-## sub foo(&) {
-##     my $blk = shift;
-##     {
-##         local $x=128;
-##         say &$blk;
-##         say \$x;
-##     }
-## };
-##
-## foo { \$x };
-## foo { foo { 42 } };
-## say 'end of demo';
-## # end of demo }}}1
-
 # Storage for routines defined by the user's scripts ==================== {{{1
 
 # TODO is there any way to make these instance variables and still have them
@@ -53,13 +35,15 @@ our @post_all = ();     # List of \& to run after reading the last file
 # }}}1
 # Private vars ========================================================== {{{1
 
-# For giving each script a unique package name - TODO move to XACPn
+# For giving each script a unique package name
 my $scriptnumber = 0;
 
 # }}}1
 # Loading =============================================================== {{{1
 
-# Load the script file given in $_[0], but do not execute it
+# Load the named script file from disk, but do not execute it
+# @param $self
+# @param $fn {String}   Filename to load
 sub load_script_file {
     my $self = shift;
 
@@ -72,16 +56,67 @@ sub load_script_file {
     }
     close $fh;
 
-    # Permit users to specify the axk language version using `Vn` pragmas.
-    # E.g., V1 (= V 1, V01, V001, ...) is specified in XML::Axk::V1.
-    # The `V` must be the first non-whitespace on the line.
-    # An axk script without a Vn pragma is an error.
-    $contents =~ s{^\h*V\h*0*(\d+)\h*;?}{use XML::Axk::V$1;}m;
+    $self->load_script_text($contents, $fn, false);
+        # false => scripts on disk MUST specify a Vn directive.  This is a
+        # design decision, so we don't have issues like Perl 5/6 or Python 2/3.
+
+} #load_script_file
+
+# Load the given text, but do not execute it.
+# @param $self
+# @param $text {String} The source text
+# @param $fn {String}   Filename to use in debugging messages
+# @param $add_Vn {boolean, default false} If true, add a Vn directive for the
+#           current version if there isn't one in the script.
+sub load_script_text {
+    my $self = shift;
+    my $text = shift;
+    my $fn = shift // '(command line)';
+    my $add_Vn = shift;
 
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
 
-    # Mark the filename for the sake of error messages
+=pod
+
+=head1 SPECIFYING THE AXK LANGUAGE VERSION
+
+An axk script can include a C<Vn> pragma that specifies the axk
+language version in use.  For example, C<V1> (or, C<V 1>, C<V01>,
+C<V001>, ...) calls for language version 1 (currently defined in
+C<XML::Axk::V1>).  The C<Vn> must be the first non-whitespace item
+on a line.
+
+An axk script on disk without a Vn pragma is an error.  This means
+that the language version must be specified in the C<Vn> form, not as
+a direct C<use ...::Vn;> statement.  This is so that C<Vn> can expand
+to something different depending on the language version, if
+necessary.  However, you can say `use...Vn` manually _in addition to_
+the pragma (e.g., in a different package).
+
+Multiple C<Vn> pragmas are allowed in a file.  This is so you can use
+different language versions in different packages if you want to.
+However, you do so at your own risk!
+
+Command-line scripts without a C<Vn> pragma use the latest version
+automatically.  That is, the behaviour is like perl's C<-E> rather than
+perl's C<-e>.  That risks breakage of inline scripts, but makes it easier
+to use axk from the command line.  If you are using axk in a script,
+specify the C<Vn> pragma at the beginning of your script.  This is
+consistent with the requirement to list the version in your source
+files.
+
+=cut
+
+    unless($text =~ s{^\h*V\h*0*(\d+)\h*;?}{use XML::Axk::V$1;}mg) {
+        if($add_Vn) {
+            $leader = "use XML::Axk::V1;\n";    # To be updated over time
+        } else {
+            croak "No version (Vn) specified in file $fn";
+        }
+    }
+
+    # Mark the filename for the sake of error messages.
     #$fn =~ s{\\}{\\\\}g;   # This doesn't seem to be necessary based on
                             # the regex given for #line in perlsyn.
     $fn =~ s{"}{-}g;
@@ -98,20 +133,20 @@ sub load_script_file {
         'our $_AxkCore = $' . $self->global_name . ";\n" .
         "XML::Axk::Vars::Inject->inject(\$_AxkCore);\n" .
         $leader;
-    $trailer .= "\n};\n";
+    $trailer .= "\n;};\n";
     ++$scriptnumber;
 
-    $contents = ($leader . $contents . $trailer);
+    $text = ($leader . $text . $trailer);
 
     if($self->{options}->{SHOW} && ref $self->{options}->{SHOW} eq 'ARRAY' &&
        any {$_ eq 'source'} @{$self->{options}->{SHOW}}) {
-        say "****************Loading:\n$contents\n****************";
+        say "****************Loading $fn:\n$text\n****************";
     }
 
-    eval $contents;
+    eval $text;
     croak "Could not parse '$fn': $@" if $@;
     #say "Done";
-} #load_script_file
+} #load_script_text
 
 # }}}1
 # Running =============================================================== {{{1
@@ -209,7 +244,7 @@ sub run {
 } #run()
 
 # }}}1
-# Constructor, private data, and accessors ============================== {{{1
+# Constructor and accessors ============================================= {{{1
 
 sub _globalname {   # static int->str
     my $idx = shift;

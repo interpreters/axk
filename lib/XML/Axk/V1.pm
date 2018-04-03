@@ -9,7 +9,7 @@ use XML::Axk::Core;
 use XML::Axk::Matcher::XPath;
 
 use parent 'Exporter';
-our @EXPORT = qw(pre_all pre_file post_file post_all perform xpath);
+our @EXPORT = qw(pre_all pre_file post_file post_all perform always xpath);
 
 # Definers for special-case actions ============================== {{{1
 
@@ -65,6 +65,18 @@ sub perform :prototype(&@) {
     push @{$core->{worklist}}, [$refPattern, $drAction];
 } #perform()
 
+# }}}1
+# Definers for matchers ========================================== {{{1
+
+# TODO define subs to tag various things as, e.g., selectors, xpath,
+# attributes, namespaces, ... .  This is essentially a DSL for all the ways
+# you can write a pattern
+
+# Always match - a regex that always matches
+sub always {
+    return qr//;
+} #always()
+
 # Make an XPath matcher
 sub xpath :prototype(@) {
     my $refExpr = shift or croak("No expression provided!");
@@ -72,11 +84,6 @@ sub xpath :prototype(@) {
     my $matcher = XML::Axk::Matcher::XPath->new(xpath => $refExpr);
     return $matcher;
 } #xpath()
-
-# }}}1
-# TODO define subs to tag various things as, e.g., selectors, xpath, {{{1
-# attributes, namespaces, ... .  This is essentially a DSL for all the ways
-# you can write a pattern
 
 # }}}1
 1;

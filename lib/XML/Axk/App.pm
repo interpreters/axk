@@ -143,12 +143,15 @@ sub Main {
         # they stick around as long as $core does.
     #say 'Core: ' . Dumper($core);
 
+    my $cmd_line_idx = 0;   # Number the `-e`s on the command line
     foreach my $lrSource (@Sources) {
         my ($is_file, $text) = @$lrSource;
         if($is_file) {
             $core->load_script_file($text);
         } else {
-            say "Can't yet load text: $text";   # TODO
+            $core->load_script_text($text,
+                "(cmd line script #@{[++$cmd_line_idx]})",
+                true);  # true => add a Vn if there isn't one in the script
         }
     }
 
