@@ -235,8 +235,7 @@ sub new {
 
         # Script-accessible vars
         sav => { C => undef, F => []},          # storage for the SAVs
-        sav_ties => { C => undef, F => undef }, # tie instances for the SAVs
-        # NOTE: keys in sav and sav_ties are names without sigils.  I am not
+        # NOTE: keys in sav are names without sigils.  I am not
         # sure whether this is more or less confusing than including the
         # sigils in the keys!  In any event, as a design decision, only one
         # sigil will be used for each name (i.e., no $foo and @foo).
@@ -261,57 +260,6 @@ sub id {
 sub global_name {
     return _globalname(shift->{_id});
 }
-
-# Setter for script-accessible vars.
-# Usage:
-#   Scalar: $core->set_sav('$foo',"new_value")
-#   Array clear: $core->set_sav('@foo')
-#   Array splice: $core->set_sav('@foo',\(new_list)[, offset[, length]])
-sub set_sav {
-    my $self = shift;
-    my $var = shift;
-    my $refTie = $self->{sav_ties}->{substr($var, 1)};
-
-    if(substr($var, 0, 1) eq '$') {
-        #say "Setting scalar $var";
-        $refTie->STORE(shift);
-
-    } elsif(substr($var, 0, 1) eq '@') {
-        #say "Setting array $var";
-        if(@_ && (ref $_[0] eq 'ARRAY')) {    # array splice
-            my $lrNew = shift;
-
-            # offset and length are not optional if LIST is provided.
-            # Set the defaults - adapted from perldoc perltie and from
-            # Tie::StdArray.
-            my $ofs = shift || 0;
-            my $len = shift // (    # // so caller can pass 0
-                $ofs < 0 ?
-                -$ofs :
-                ($refTie->FETCHSIZE() - $ofs)
-            );
-
-            #say 'Before splice: ' . Dumper($refTie);
-            #$refTie->SPLICE(@_, $ofs, $len, @{$lrNew});
-            say "set_sav splice $ofs, $len, $lrNew";
-            $refTie->SPLICE($ofs, $len, @{$lrNew});
-            #say 'After splice: ' . Dumper($refTie);
-
-            do {
-                no strict 'refs';
-                say "After splice:";
-                say '0 ', Dumper(\@{"axk_script_0::F"});
-                say '1 ', Dumper(\@{"axk_script_1::F"});
-            };
-        } else {    # special-case array clear
-            #say ' ... clearing';
-            $refTie->CLEAR();
-        }
-
-    } else {
-        croak "Can't set_sav unknown var type $var";
-    }
-} #set_sav()
 
 # }}}1
 

@@ -21,19 +21,16 @@ sub inject_var {
     no strict 'refs';
 
     if(substr($varname, 0, 1) eq '$') {         # scalar
-        $instance->{sav_ties}->{$basename} =
-            tie(${"${target}::${basename}"}, 'XML::Axk::Vars::Scalar',
-                $instance, $basename);
+        tie(${"${target}::${basename}"}, 'XML::Axk::Vars::Scalar',
+            $instance, $basename);
 
     } elsif(substr($varname, 0, 1) eq '@') {    # array
-        $instance->{sav_ties}->{$basename} =
-            tie(@{"${target}::${basename}"}, 'XML::Axk::Vars::Array',
-                $instance, $basename);
+        tie(@{"${target}::${basename}"}, 'XML::Axk::Vars::Array',
+            $instance, $basename);
 
     } else {
         croak "Can't inject unknown var type $varname";
     }
-    #say "Injected $varname into $target and $instance";
 } #inject_var()
 
 # }}}2
