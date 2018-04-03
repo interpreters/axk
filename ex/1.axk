@@ -19,6 +19,7 @@ perform {
 
 perform {
     say "Always";
+    push @F, "from ex1";
 } qr/.?/;
 
 perform {

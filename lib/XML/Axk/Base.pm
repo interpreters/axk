@@ -18,17 +18,22 @@ use Carp;
 # Definitions from this file
 use constant {true => !!1, false => !!0};
 our @EXPORT = qw(true false);
+our @EXPORT_OK = qw(any);
+our %EXPORT_TAGS = (
+    default => [@EXPORT],
+    all => [qw(true false any)]
+);
 
 BEGIN {
     $SIG{'__DIE__'} = sub { Carp::confess(@_) } if not $SIG{'__DIE__'};
+    #$Exporter::Verbose=1;
 }
 
 sub import {
+    my $target = caller;
 
     # Copy symbols listed in @EXPORT first, in case @_ gets trashed later
-    shift->export_to_level(1, @_);
-
-    my $target = caller;
+    XML::Axk::Base->export_to_level(1, @_);
 
     # Re-export pragmas
     feature->import::into($target, qw(:5.18));
@@ -49,6 +54,18 @@ sub import {
 #        no strict 'refs';
 #        *{"${caller}::true"}  = *{"true"};
 #    };
+
+# Copied from List::MoreUtils::PP because I don't need anything else
+# from that package at the moment.
+sub any (&@)
+{
+    my $f = shift;
+    foreach (@_)
+    {
+        return 1 if $f->();
+    }
+    return 0;
+}
 
 1;
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #

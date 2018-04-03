@@ -21,7 +21,6 @@ sub TIEARRAY {
     my $varname = shift or croak("No varname");     # the var to create
 
     #say "Tying array \$$varname to $instance";
-    $instance->{sav}->{$varname} = [];  # sav->$varname stores an arrayref
     return bless $instance->{sav}->{$varname}, $class;
 } #TIEARRAY()
 

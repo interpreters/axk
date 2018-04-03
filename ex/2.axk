@@ -1,6 +1,8 @@
 V1
 perform {
-    say __FILE__, " sees line $C";
+    my $x = $C;
+    chomp $x;
+    say __FILE__, " sees line $x";
     say __FILE__, ' ', join '; ', @F;
 } qr/.?/;
 

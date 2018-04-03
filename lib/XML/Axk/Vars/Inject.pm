@@ -11,7 +11,7 @@ use XML::Axk::Vars::Scalar;
 use XML::Axk::Vars::Array;
 
 # Config: the variables to create
-my @vars = qw($C @F);
+my @create_vars = qw($C @F);
 
 # Helpers ======================================================== {{{2
 
@@ -42,7 +42,7 @@ sub inject_var {
 # At compile time, just create the symbols but don't give them values
 # or tie them.
 sub import {
-    vars->import::into(1, @vars);
+    vars->import::into(1, @create_vars);
 } #import()
 
 
@@ -53,8 +53,7 @@ sub inject {
     my $target = caller;
 
     # Link the variables in $target to $instance
-    inject_var $instance, $target, $_ foreach @vars;
-
+    inject_var $instance, $target, $_ foreach @create_vars;
 } #inject()
 
 # }}}1

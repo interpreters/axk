@@ -21,7 +21,6 @@ sub TIESCALAR {
     my $varname = shift or croak("No varname");     # the var to create
 
     #say "Tying scalar \$$varname to $instance";
-    $instance->{sav}->{$varname} = undef;
     return bless \($instance->{sav}->{$varname}), $class;
 } #TIESCALAR()
 

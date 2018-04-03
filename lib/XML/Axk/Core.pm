@@ -7,7 +7,7 @@
 #   "b" or "is" (boolean), "s" (string)
 
 package XML::Axk::Core;
-use XML::Axk::Base;
+use XML::Axk::Base qw(:default any);
 
 ## # a demo {{{1
 ## say true;
@@ -104,7 +104,7 @@ sub load_script_file {
     $contents = ($leader . $contents . $trailer);
 
     if($self->{options}->{SHOW} && ref $self->{options}->{SHOW} eq 'ARRAY' &&
-       grep /^source$/i, @{$self->{options}->{SHOW}}) {
+       any {$_ eq 'source'} @{$self->{options}->{SHOW}}) {
         say "****************Loading:\n$contents\n****************";
     }
 
@@ -149,22 +149,11 @@ sub run {
         my $fh;
         say "Processing $infn";
 
-        # TODO FIXME - this only works for exactly one package, because
-        # each package has its own ties.  Also, if no packages are loaded,
-        # the SAVs don't exist.  Fix this.
-        #
-        # It could be worse - `./run -f ex/1.axk -f ex/2.axk ex/oneliner`
-        # actually works.  However, running script 2 first does not -
-        # in `./run -f ex/2.axk -f ex/1.axk ex/oneliner`, script 2 (which
-        # runs first) doesn't see anything in @F.
-        # I think I might need to write custom ties that store \($core->{sav})
-        # and dereference into it to write or read.
-
         # Clear the SAVs before each file for consistency.
-        $self->set_sav('$C', undef);
-        $self->set_sav('@F');
+        $self->{sav}->{C} = undef;
+        @{$self->{sav}->{F}} = ();
 
-        # For now, just process lines rather than nodes
+        # For now, just process lines rather than XML nodes.
         if($infn eq '-') {  # stdin
             open($fh, '<-') or croak "Can't open stdin!??!!";
         } else {            # disk file
@@ -184,10 +173,8 @@ sub run {
             #say "Got $line";
 
             # Send the SAV values to the user's scripts
-            $self->set_sav('$C', $line);
-
-            my @fields = split ' ', $line;
-            $self->set_sav('@F', \@fields);
+            $self->{sav}->{C} = $line;
+            @{$self->{sav}->{F}} = split ' ', $line;
 
             #say join ' ', 'main loop $C',\$self->{sav}->{C},
             #       '@F',\@{$self->{sav}->{F}};
@@ -229,7 +216,7 @@ sub _globalname {   # static int->str
     return "XML::Axk::Core::_I${idx}";
 } #_globalname()
 
-# For giving each instance of Core a unique package name (X::A::C::P<n>)
+# For giving each instance of Core a unique package name (_globalname)
 my $_instance_number = 0;
 
 sub new {
@@ -245,12 +232,14 @@ sub new {
         worklist => [],
         post_file => [],
         post_all => [],
-        sav => {},      # X::A::V::Inject will add elements to this hash
-        sav_ties => {}, # ditto --- the actual blessed references
+
+        # Script-accessible vars
+        sav => { C => undef, F => []},          # storage for the SAVs
+        sav_ties => { C => undef, F => undef }, # tie instances for the SAVs
         # NOTE: keys in sav and sav_ties are names without sigils.  I am not
         # sure whether this is more or less confusing than including the
         # sigils in the keys!  In any event, as a design decision, only one
-        # sigil will be used for each name.
+        # sigil will be used for each name (i.e., no $foo and @foo).
     };
     my $self = bless($data, $class);
 
@@ -303,8 +292,17 @@ sub set_sav {
             );
 
             #say 'Before splice: ' . Dumper($refTie);
-            $refTie->SPLICE(@_, $ofs, $len, @{$lrNew});
+            #$refTie->SPLICE(@_, $ofs, $len, @{$lrNew});
+            say "set_sav splice $ofs, $len, $lrNew";
+            $refTie->SPLICE($ofs, $len, @{$lrNew});
             #say 'After splice: ' . Dumper($refTie);
+
+            do {
+                no strict 'refs';
+                say "After splice:";
+                say '0 ', Dumper(\@{"axk_script_0::F"});
+                say '1 ', Dumper(\@{"axk_script_1::F"});
+            };
         } else {    # special-case array clear
             #say ' ... clearing';
             $refTie->CLEAR();
@@ -320,4 +318,4 @@ sub set_sav {
 # No import() --- callers should refer to the symbols with their
 # fully- qualified names.
 1;
-# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #
+# vi: set ts=4 sts=4 sw=4 et ai fo=cql foldmethod=marker foldlevel=0: #
