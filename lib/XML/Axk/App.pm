@@ -179,7 +179,7 @@ __END__
 
 =head1 NAME
 
-axk, and package XML::Axk::App - ack-like XML processor
+XML::Axk::App - ack-like XML processor, command-line interface
 
 =head1 VERSION
 
@@ -187,31 +187,12 @@ Version 0.01
 
 =head1 USAGE
 
-    use XML::Axk::App;
-    XML::Axk::App::Main(\@ARGV)
-
-    use XML::Axk;
-    my $foo = XML::Axk->new();
+    axk [options] [--] [script or input filename]
 
 =head1 OPTIONS
 
-None yet!
-
 A filename of C<-> represents standard input.  To actually process a file
 named C<->, you will need to use shell redirection (e.g., C<< axk < - >>).
-
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=head2 function2
-
-=cut
 
 =head1 AUTHOR
 

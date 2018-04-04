@@ -168,10 +168,51 @@ sub isMatch {   #static
     }
 } #isMatch()
 
-# Run the loaded script(s).  Takes a list of inputs.  Strings are treated
-# as filenames; references to strings are treated as raw data to be treated
-# as if read off disk.
+# Run the loaded script(s) against a single filehandle.
+# TODO once I implement the different operating models (SAX, DOM, ?),
+# make one run_fh function for each operating model.
+sub run_fh {
+    my ($self, $fh, $infn) = @_ or croak("Need a filehandle and filename");
 
+    foreach my $drAction (@{$self->{pre_file}}) {
+        eval { &$drAction($infn) };   # which context are they evaluated in?
+        croak "pre_file: $@" if $@;
+    }
+
+    my $FNR = 0;    # TODO make this an SAV
+    while(my $line = <$fh>) {
+        say "\nLine ", ++$FNR, '==========================';
+        #say "Got $line";
+
+        # Send the SAV values to the user's scripts
+        $self->{sav}->{C} = $line;
+        @{$self->{sav}->{F}} = split ' ', $line;
+
+        #say join ' ', 'main loop $C',\$self->{sav}->{C},
+        #       '@F',\@{$self->{sav}->{F}};
+
+        foreach my $lrItem (@{$self->{worklist}}) {
+            my ($refPattern, $refAction) = @$lrItem;
+
+            next unless isMatch($refPattern, \$line);
+
+            eval { &$refAction };   # which context are they evaluated in?
+            croak "action: $@" if $@;
+        } #foreach worklist item
+    } # foreach line
+
+    foreach my $drAction (@{$self->{post_file}}) {
+        # TODO? make the last-seen node available to the action?
+        # Similar to awk, in which the END block sees the last line as $0.
+        eval { &$drAction($infn) };   # which context are they evaluated in?
+        croak "post_file: $@" if $@;
+    }
+} #run_fh
+
+# Run the loaded script(s).  Takes a list of inputs.  Strings are treated
+# as filenames; references to strings are treated as raw data to be run
+# as if read off disk.  A filename of '-' represents STDIN.  To process a
+# disk file named '-', read its contents first and pass them in as a ref.
 sub run {
     my $self = shift;
 
@@ -197,39 +238,7 @@ sub run {
                 # http://www.perlmonks.org/?node_id=745018
         }
 
-        foreach my $drAction (@{$self->{pre_file}}) {
-            eval { &$drAction($infn) };   # which context are they evaluated in?
-            croak "pre_file: $@" if $@;
-        }
-
-        my $FNR = 0;    # TODO make this an SAV
-        while(my $line = <$fh>) {
-            say "\nLine ", ++$FNR, '==========================';
-            #say "Got $line";
-
-            # Send the SAV values to the user's scripts
-            $self->{sav}->{C} = $line;
-            @{$self->{sav}->{F}} = split ' ', $line;
-
-            #say join ' ', 'main loop $C',\$self->{sav}->{C},
-            #       '@F',\@{$self->{sav}->{F}};
-
-            foreach my $lrItem (@{$self->{worklist}}) {
-                my ($refPattern, $refAction) = @$lrItem;
-
-                next unless isMatch($refPattern, \$line);
-
-                eval { &$refAction };   # which context are they evaluated in?
-                croak "action: $@" if $@;
-            }
-        } # foreach line
-
-        foreach my $drAction (@{$self->{post_file}}) {
-            # TODO? make the last-seen node available to the action?
-            # Similar to awk, in which the END block sees the last line as $0.
-            eval { &$drAction($infn) };   # which context are they evaluated in?
-            croak "post_file: $@" if $@;
-        }
+        $self->run_fh($fh, $infn);
 
         close($fh) or warn "close failed: $!";
 
