@@ -58,9 +58,6 @@ my %CMDLINE_OPTS = (
     SHOW => ['show',':s@'],     # which debugging output to print.
                                 # TODO make it a hash instead?
 );
-# Note: first non-option argument is a program if
-# Note 2: Language version will default to the latest if any source provided
-# on the command line doesn't match /^\s*V\s*\d+[\s;]+/.
 
 sub parse_command_line {
     # Takes {into=>hash ref, from=>array ref}.  Fills in the hash with the
@@ -95,13 +92,15 @@ sub parse_command_line {
     if(!$opts_ok || have('usage') || have('h') || have('man')) {
         # Only pull in the Pod routines if we actually need them.
         require Pod::Usage;
-        require Pod::Find; # qw(pod_where);
-        my $pod_input = Pod::Find::pod_where({-inc => 1}, __PACKAGE__);
+
+        #require Pod::Find; # qw(pod_where);
+        #my $pod_input = Pod::Find::pod_where({-inc => 1, -verbose=>1}, __PACKAGE__);
             # This takes a long time on my system.
-        Pod::Usage::pod2usage(-verbose => 0, -exitval => EXIT_PARAM_ERR, -input => $pod_input) if !$opts_ok;    # unknown opt
-        Pod::Usage::pod2usage(-verbose => 0, -exitval => EXIT_OK, -input => $pod_input) if have('usage');
-        Pod::Usage::pod2usage(-verbose => 1, -exitval => EXIT_OK, -input => $pod_input) if have('h');
-        Pod::Usage::pod2usage(-verbose => 2, -exitval => EXIT_OK, -input => $pod_input) if have('man');
+
+        Pod::Usage::pod2usage(-verbose => 0, -exitval => EXIT_PARAM_ERR, -input => __FILE__) if !$opts_ok;    # unknown opt
+        Pod::Usage::pod2usage(-verbose => 0, -exitval => EXIT_OK, -input => __FILE__) if have('usage');
+        Pod::Usage::pod2usage(-verbose => 1, -exitval => EXIT_OK, -input => __FILE__) if have('h');
+        Pod::Usage::pod2usage(-verbose => 2, -exitval => EXIT_OK, -input => __FILE__) if have('man');
     }
 
     # Map the option names from GetOptions back to the internal names we use,
@@ -122,13 +121,9 @@ sub parse_command_line {
 # Command-line runner.  Call as XML::Axk::App::Main(\@ARGV).
 sub Main {
     my $lrArgs = shift;
-    #say 'Args:' . Dumper($lrArgs);
 
     my %opts;
     parse_command_line(from => $lrArgs, into => \%opts);
-
-    #say "Opts: " . Dumper(\%opts);
-    #say "Remaining: " . Dumper($lrArgs);
 
     # Treat the first non-option arg as a script if appropriate
     unless(@Sources) {
@@ -136,12 +131,9 @@ sub Main {
         push @Sources, [false, shift @$lrArgs];
     }
 
-    #say "Loading sources:\n" . Dumper(\@Sources);
-
     my $core = XML::Axk::Core->new(\%opts);
         # Note: core doesn't copy the provided options, so make sure
         # they stick around as long as $core does.
-    #say 'Core: ' . Dumper($core);
 
     my $cmd_line_idx = 0;   # Number the `-e`s on the command line
     foreach my $lrSource (@Sources) {
@@ -153,14 +145,12 @@ sub Main {
                 "(cmd line script #@{[++$cmd_line_idx]})",
                 true);  # true => add a Vn if there isn't one in the script
         }
-    }
+    } #foreach source
 
     # read from stdin if no input files specified.
     push @$lrArgs, '-' unless @$lrArgs;
 
-    say "Running";
     $core->run(@$lrArgs);
-    say "App:main done";
 
     return 0;
 } #Main()
@@ -193,6 +183,10 @@ Version 0.01
 
 A filename of C<-> represents standard input.  To actually process a file
 named C<->, you will need to use shell redirection (e.g., C<< axk < - >>).
+
+The first non-option argument is a program if no -e or -f are given.
+The script language version for a -e will default to the latest if the text
+on the command line doesn't match C</^\s*V\s*\d+[\s;]+/>.
 
 =head1 AUTHOR
 
