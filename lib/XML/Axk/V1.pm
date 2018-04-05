@@ -2,6 +2,15 @@
 # XML::Axk::V1 - axk language, version 1
 # Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
 
+# TODO:
+# - Add a way to mark that a node should be kept in the DOM, even if running
+#   in SAX mode (`stash`?)
+# - Add a way to re-use the last pattern (`ditto`?)
+# - Instead of using $_AxkCore, use a static map in XAC that goes from
+#   the caller's package name to the corresponding core.
+# - Add a static method to XAC to get the next package name, so that each
+#   `axk_script_*` is used by only one Core instance.
+
 package XML::Axk::V1;
 use XML::Axk::Base;
 use XML::Axk::Core;
@@ -56,13 +65,12 @@ sub post_all :prototype(&) {
 use Scalar::Util qw(reftype);
 sub perform :prototype(&@) {
     #say Dumper(\@_);
-    my $drAction = shift;
-    my $refPattern = shift;
+    my ($drAction, $refPattern, $is_post) = @_;
 
     $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
 
     my $core = _core or croak("Can't find core in perform");
-    push @{$core->{worklist}}, [$refPattern, $drAction];
+    push @{$core->{worklist}}, [$refPattern, $drAction, !!$is_post];
 } #perform()
 
 # }}}1

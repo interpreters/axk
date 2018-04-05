@@ -31,6 +31,10 @@ WriteMakefile(
         'Tie::Scalar' => '0',
         'Tie::Array' => '0',
         'Tie::Hash' => '0',
+        'XML::Handler::BuildDOM' => '0',
+        'XML::LibXML::jQuery' => '0',
+            # Maybe I only need HTML::Selector::XPath qw/selector_to_xpath/,
+            # which X::L::jQuery uses.  TODO check this.
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'XML-Axk-*' },

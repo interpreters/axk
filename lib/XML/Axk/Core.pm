@@ -11,24 +11,11 @@ use XML::Axk::Base qw(:default any);
 
 # Storage for routines defined by the user's scripts ==================== {{{1
 
-# TODO is there any way to make these instance variables and still have them
-# accessible to scripts, with reentrancy?  I suppose load_* could generate
-# a temporary package name, put a reference to the instance in that package,
-# and hardwire that package into each script.
-#   - Looks like I might be able to do this with Eval::Context, but I'm not
-#     sure if the package variables in X::A::V1 can reach those.
-#   * If I just stuff a reference to the Core instance in the symbol table
-#     of each script package at load time, the helpers in this file can use
-#     `caller` to get that package name and then find the instance in question.
-#   **Even better --- put a reference to the Core instance in a uniquely-named
-#     variable in XAC, then put an `our $_XAC = $X::A::C::<whatever>;` at the
-#     top of each script being evaluated.  Then use caller as noted in the
-#     previous point and ${"${caller}::_XAC} in the V1 routines.
-
 # Load these in the order they are defined in the scripts.
 our @pre_all = ();      # List of \& to run before reading the first file
 our @pre_file = ();     # List of \& to run before reading each file
-our @worklist = ();     # List of [\&condition, \&action] for each node
+our @worklist = ();     # List of [$refCondition, \&action, $is_post]
+                        # to be run against each node.
 our @post_file = ();    # List of \& to run after reading each file
 our @post_all = ();     # List of \& to run after reading the last file
 
@@ -192,7 +179,7 @@ sub run_fh {
         #       '@F',\@{$self->{sav}->{F}};
 
         foreach my $lrItem (@{$self->{worklist}}) {
-            my ($refPattern, $refAction) = @$lrItem;
+            my ($refPattern, $refAction, $isPost) = @$lrItem;
 
             next unless isMatch($refPattern, \$line);
 
