@@ -1,5 +1,10 @@
 say "hello from foo!";
 V1
+BEGIN {
+    no strict 'refs';
+    say Dumper(\%{"axk_script_0::"});
+};
+
 pre_all {
     say "pre_all";
 };
@@ -20,11 +25,11 @@ perform {
 perform {
     say "Always";
     push @F, "from ex1";
-} qr/.?/;
+} qr//; #always;
 
 perform {
     say "xpather";
-} xpath "//quux";
+} 0; #xpath("//quux");
 
 #on 42, sub { die("oops from foo"); };
 #on { die("oops from foo"); } 42;

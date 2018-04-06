@@ -6,13 +6,27 @@
 package XML::Axk::Matcher::XPath;
 use XML::Axk::Base;
 
-use Object::Tiny::XS qw(xpath);
+use Object::TinyDefaults
+    {   kind => 'xpath',
+        file => '(unknown source)',
+        line => 0
+    },
+    qw(xpath);
+
+sub new {
+    my $class = shift;
+    my $self  = $class->SUPER::new(@_);
+    croak "No xpath specified" unless $self->{xpath};
+
+    return $self;
+} #new()
 
 sub test {
     my $self = shift;
     my $refData = shift or return false;
+
     eval {
-        say "XPath: Attempt to match $self->xpath against $refData";
+        say "XPath: Attempt to match $self->xpath against $refData in $self->file at $self->line";
     };
     return true;    # for now
 } #test()

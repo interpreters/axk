@@ -16,6 +16,7 @@ use XML::Axk::Base;
 use XML::Axk::Core;
 
 use XML::Axk::Matcher::XPath;
+use HTML::Selector::XPath 'selector_to_xpath';
 
 use parent 'Exporter';
 our @EXPORT = qw(pre_all pre_file post_file post_all perform always xpath);
@@ -81,7 +82,7 @@ sub perform :prototype(&@) {
 # you can write a pattern
 
 # Always match - a regex that always matches
-sub always {
+sub always :prototype() {
     return qr//;
 } #always()
 
@@ -89,7 +90,20 @@ sub always {
 sub xpath :prototype(@) {
     my $refExpr = shift or croak("No expression provided!");
     $refExpr = \( my $temp = $refExpr ) unless ref($refExpr);
-    my $matcher = XML::Axk::Matcher::XPath->new(xpath => $refExpr);
+
+    my ($package, $filename, $line) = caller;
+    my $matcher = XML::Axk::Matcher::XPath->new(
+        xpath => $refExpr, file=>$filename, line=>$line
+    );
+    return $matcher;
+} #xpath()
+
+# Make a selector matcher
+sub sel :prototype(@) {
+    my $refExpr = shift or croak("No expression provided!");
+    $refExpr = \( my $temp = $refExpr ) unless ref($refExpr);
+    my $xp = selector_to_xpath @_;
+    my $matcher = XML::Axk::Matcher::XPath->new(xpath => \$xp);
     return $matcher;
 } #xpath()
 
