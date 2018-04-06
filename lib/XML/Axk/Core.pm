@@ -95,6 +95,8 @@ files.
 
 =cut
 
+    # TODO change all `Vn` to `Ln` for _L_anguage.  That way L# is
+    # clearly decoupled from axk version.
     unless($text =~ s{^\h*V\h*0*(\d+)\h*;?}{use XML::Axk::V$1;}mg) {
         if($add_Vn) {
             $leader = "use XML::Axk::V1;\n";    # To be updated over time

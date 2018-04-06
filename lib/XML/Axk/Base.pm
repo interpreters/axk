@@ -25,7 +25,7 @@ our %EXPORT_TAGS = (
 );
 
 BEGIN {
-    $SIG{'__DIE__'} = sub { Carp::confess(@_) } if not $SIG{'__DIE__'};
+    $SIG{'__DIE__'} = sub { Carp::confess(@_) } unless $SIG{'__DIE__'};
     #$Exporter::Verbose=1;
 }
 

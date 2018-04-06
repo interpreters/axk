@@ -2,6 +2,8 @@ package XML::Axk::App;
 use XML::Axk::Base;
 use XML::Axk::Core;
 
+#BEGIN { require Exporter; $Exporter::Verbose=1; }
+
 our $VERSION = '0.01';
 
 use Getopt::Long qw(GetOptionsFromArray :config gnu_getopt);

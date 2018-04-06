@@ -33,9 +33,12 @@ my %defaults;
 # Any remaining parameters are other fields to create.  Field names in the
 # defaults do not also have to be specified in the list.
 sub import {
+    my $class = shift;
+    return unless $class eq __PACKAGE__;
+        # Without this, it also gets imported into XML::Axk::V1 and
+        # axk_script_*, trashing symbols and preventing execution.
     my $pkg   = caller;
     #print "Import into $pkg: (", join(', ', @_), ")\n";
-    my $class = shift;
 
     # Stash defaults for new()
     $defaults{$pkg} = { (ref $_[0] eq 'HASH') ? %{+shift} : () };
@@ -43,6 +46,7 @@ sub import {
     #print "Defaults for $pkg are ", Dumper($defaults{$pkg}), "\n";
 
     parent->import::into(1, $class);    # Caller is now a child of us
+    #print "Caller is now ", join(', ', @{$pkg . '::ISA'}), "\n";
 
     my %vars = %{$defaults{$pkg}};      # All the fields, without duplicates
     $vars{$_} = 1 for @_;
@@ -52,6 +56,7 @@ sub import {
         # Caller now has all the accessors, and is still a child of us because
         # Object::Tiny doesn't overwrite an existing @ISA.
 
+    #print "Done importing into $pkg\n";
     return 1;
 } #import()
 

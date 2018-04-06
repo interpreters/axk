@@ -16,12 +16,14 @@ use XML::Axk::Base;
 use XML::Axk::Core;
 
 use XML::Axk::Matcher::XPath;
-use HTML::Selector::XPath 'selector_to_xpath';
+use HTML::Selector::XPath qw(selector_to_xpath);
+
+use Scalar::Util qw(reftype);
 
 use parent 'Exporter';
 our @EXPORT = qw(pre_all pre_file post_file post_all perform always xpath);
 
-# Definers for special-case actions ============================== {{{1
+# Internal routines ============================================== {{{1
 
 # Accessor
 sub _core {
@@ -31,6 +33,9 @@ sub _core {
     my $core = ${"${home}::_AxkCore"};
     return $core;
 } #_core()
+
+# }}}1
+# Definers for special-case actions ============================== {{{1
 
 sub pre_all :prototype(&) {
     my $core = _core or croak("Can't find core in pre_all");
@@ -63,7 +68,6 @@ sub post_all :prototype(&) {
 ## since that's how Perl's prototypes are set up the cleanest (block first).
 ## @params required &action     A block to execute when the pattern matches
 ## @params required pattern     The pattern
-use Scalar::Util qw(reftype);
 sub perform :prototype(&@) {
     #say Dumper(\@_);
     my ($drAction, $refPattern, $is_post) = @_;
@@ -91,9 +95,10 @@ sub xpath :prototype(@) {
     my $refExpr = shift or croak("No expression provided!");
     $refExpr = \( my $temp = $refExpr ) unless ref($refExpr);
 
-    my ($package, $filename, $line) = caller;
+    my (undef, $filename, $line) = caller;
     my $matcher = XML::Axk::Matcher::XPath->new(
-        xpath => $refExpr, file=>$filename, line=>$line
+        xpath => $refExpr,
+        file=>$filename, line=>$line,
     );
     return $matcher;
 } #xpath()
@@ -102,10 +107,14 @@ sub xpath :prototype(@) {
 sub sel :prototype(@) {
     my $refExpr = shift or croak("No expression provided!");
     $refExpr = \( my $temp = $refExpr ) unless ref($refExpr);
-    my $xp = selector_to_xpath @_;
-    my $matcher = XML::Axk::Matcher::XPath->new(xpath => \$xp);
+    my $xp = selector_to_xpath $$refExpr;
+    my (undef, $filename, $line) = caller;
+    my $matcher = XML::Axk::Matcher::XPath->new(
+        xpath => \$xp, type => 'selector',
+        file=>$filename, line=>$line,
+    );
     return $matcher;
-} #xpath()
+} #sel()
 
 # }}}1
 1;

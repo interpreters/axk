@@ -26,7 +26,8 @@ sub test {
     my $refData = shift or return false;
 
     eval {
-        say "XPath: Attempt to match $self->xpath against $refData in $self->file at $self->line";
+        say "XPath: Attempt to match `${$self->xpath}' against `$$refData` in ",
+        $self->file, ' at ', $self->line;
     };
     return true;    # for now
 } #test()
