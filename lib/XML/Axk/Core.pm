@@ -11,14 +11,6 @@ use XML::Axk::Base qw(:default any);
 
 # Storage for routines defined by the user's scripts ==================== {{{1
 
-# Load these in the order they are defined in the scripts.
-#our @pre_all = ();      # List of \& to run before reading the first file
-#our @pre_file = ();     # List of \& to run before reading each file
-#our @worklist = ();     # List of [$refCondition, \&action, $is_post]
-#                        # to be run against each node.
-#our @post_file = ();    # List of \& to run after reading each file
-#our @post_all = ();     # List of \& to run after reading the last file
-
 # }}}1
 # Private vars ========================================================== {{{1
 
@@ -211,6 +203,8 @@ sub _run_post_file {
 # _run_worklist
 sub _run_worklist {
     my $self = shift;
+    my $now = shift;        # $now = HI, BYE, or CIAO
+
     my $sav = $self->{sav};
     my %new_savs = (@_);
 
@@ -250,7 +244,9 @@ sub _run_worklist {
 
     # Run the worklist -------------
     foreach my $lrItem (@{$self->{worklist}}) {
-        my ($refPattern, $refAction, $isPost) = @$lrItem;
+        my ($refPattern, $refAction, $when) = @$lrItem;
+
+        next if defined($when) && defined($now) && ($now xor $when);
 
         next unless $self->isMatch($refPattern);
 
@@ -280,9 +276,9 @@ sub run_text_fh {
         #       '@F',\@{$self->{sav}->{F}};
 
         foreach my $lrItem (@{$self->{worklist}}) {
-            my ($refPattern, $refAction, $isPost) = @$lrItem;
+            my ($refPattern, $refAction, $when) = @$lrItem;
 
-            next unless isMatch($refPattern, \$line);
+            next unless isTextMatch($refPattern, \$line);
 
             eval { &$refAction };   # which context are they evaluated in?
             croak "action: $@" if $@;
@@ -370,6 +366,15 @@ sub new {
     my $data = {
         _id => ++$_instance_number,
         options => $hrOpts,
+
+        # Load these in the order they are defined in the scripts.
+        #our @pre_all = ();      # List of \& to run before reading the first file
+        #our @pre_file = ();     # List of \& to run before reading each file
+        #our @worklist = ();     # List of [$refCondition, \&action, $when]
+        #                        # to be run against each node.
+        #our @post_file = ();    # List of \& to run after reading each file
+        #our @post_all = ();     # List of \& to run after reading the last file
+
         pre_all => [],
         pre_file => [],
         worklist => [],

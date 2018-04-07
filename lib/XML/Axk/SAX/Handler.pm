@@ -23,8 +23,9 @@ sub new
 }
 
 sub work {
-    my $self = shift;
+    my ($self, $now) = shift;
     $self->{axkcore}->_run_worklist(
+        $now,
         D => $self->{Document},
         E => $self->{Element}
     );
@@ -35,12 +36,12 @@ sub work {
 sub start_document {
     my $self = shift;
     $self->SUPER::start_document(@_);
-    $self->work;
+    $self->work(HI);
 } #start_document()
 
 sub end_document {
     my $self = shift;
-    $self->work;
+    $self->work(BYE);
     $self->SUPER::end_document(@_);
 } #end_document()
 
@@ -52,12 +53,12 @@ sub end_document {
 sub start_element {
     my $self = shift;
     $self->SUPER::start_element(@_);
-    $self->work;
+    $self->work(HI);
 } #start_element()
 
 sub end_element {
     my $self = shift;
-    $self->work;
+    $self->work(BYE);
     $self->SUPER::end_element(@_);
 } #end_element()
 
@@ -69,7 +70,7 @@ sub end_element {
 sub comment {
     my $self = shift;
     $self->SUPER::comment(@_);
-    $self->work;
+    $self->work(HI); # no BYE for comments
 } #comment()
 
 # }}}1

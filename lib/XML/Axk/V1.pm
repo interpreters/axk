@@ -21,7 +21,8 @@ use HTML::Selector::XPath qw(selector_to_xpath);
 use Scalar::Util qw(reftype);
 
 use parent 'Exporter';
-our @EXPORT = qw(pre_all pre_file post_file post_all perform always xpath);
+our @EXPORT = qw(pre_all pre_file post_file post_all perform always xpath
+    HI BYE CIAO);
 
 # Internal routines ============================================== {{{1
 
@@ -35,7 +36,7 @@ sub _core {
 } #_core()
 
 # }}}1
-# Definers for special-case actions ============================== {{{1
+# Definers for special actions==================================== {{{1
 
 sub pre_all :prototype(&) {
     my $core = _core or croak("Can't find core in pre_all");
@@ -70,12 +71,13 @@ sub post_all :prototype(&) {
 ## @params required pattern     The pattern
 sub perform :prototype(&@) {
     #say Dumper(\@_);
-    my ($drAction, $refPattern, $is_post) = @_;
+    my ($drAction, $refPattern, $when) = @_;
+    $when = $when // HI;    # only on entry, by default
 
     $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
 
     my $core = _core or croak("Can't find core in perform");
-    push @{$core->{worklist}}, [$refPattern, $drAction, !!$is_post];
+    push @{$core->{worklist}}, [$refPattern, $drAction, $when];
 } #perform()
 
 # }}}1

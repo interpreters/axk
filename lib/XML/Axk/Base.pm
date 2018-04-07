@@ -16,8 +16,17 @@ use Data::Dumper;
 use Carp;
 
 # Definitions from this file
-use constant {true => !!1, false => !!0};
-our @EXPORT = qw(true false);
+use constant {
+    true => !!1,
+    false => !!0,
+
+    # When to run an action --- pre, post, or both (CIAO).
+    HI => !!1,
+    BYE => !!0,
+    CIAO => undef,
+};
+
+our @EXPORT = qw(true false HI BYE CIAO);
 our @EXPORT_OK = qw(any);
 our %EXPORT_TAGS = (
     default => [@EXPORT],
