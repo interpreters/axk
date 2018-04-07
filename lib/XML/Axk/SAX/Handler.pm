@@ -22,5 +22,63 @@ sub new
     return $self;
 }
 
+# Handlers ============================================================== {{{1
+
+sub start_document {
+    my $self = shift;
+    $self->SUPER::start_document(@_);
+    #$self->{axkcore}->_run_worklist(a=>b...);  # SAVs are the params
+} #start_document()
+
+sub end_document {
+    my $self = shift;
+    $self->SUPER::end_document(@_);
+} #end_document()
+
+sub characters {
+    my $self = shift;
+    $self->SUPER::characters(@_);
+} #characters()
+
+sub start_element {
+    my $self = shift;
+    $self->SUPER::start_element(@_);
+} #start_element()
+
+sub end_element {
+    my $self = shift;
+    $self->SUPER::end_element(@_);
+} #end_element()
+
+sub entity_reference {
+    my $self = shift;
+    $self->SUPER::entity_reference(@_);
+} #entity_reference()
+
+sub comment {
+    my $self = shift;
+    $self->SUPER::comment(@_);
+} #comment()
+
+# }}}1
+# Unimplemented routines ================================================ {{{3
+# Ones we don't need to override
+#start_cdata
+#end_cdata
+
+# Not doing these yet
+#doctype_decl
+#attlist_decl
+#xml_decl
+#entity_decl
+#unparse_decl
+#element_decl
+#notation_decl
+#processing_instruction
+
+# }}}3
 1;
-# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker foldlevel=2: #
+# Documentation ========================================================= {{{3
+__END__
+# }}}3
+# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker foldlevel=2 fo=cql: #

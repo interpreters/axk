@@ -4,8 +4,8 @@
 
 package XML::Axk::SAX::Runner;
 use XML::Axk::Base;
-#use XML::Axk::SAX::Handler;
-use XML::Axk::SAX::BuildDOM2;
+use XML::Axk::SAX::Handler;
+#use XML::Axk::SAX::BuildDOM2;
 
 use XML::SAX::ParserFactory;
 use Object::Tiny qw(axkcore handler parser);
@@ -23,7 +23,8 @@ sub new
     my ($class, $core, @args) = @_;
     croak "Need an XML::Axk::Core" unless ref $core eq "XML::Axk::Core";
 
-    my $handler = XML::Axk::SAX::BuildDOM2->new();    #XML::Axk::SAX::Handler->new($core);
+    my $handler = #XML::Axk::SAX::BuildDOM2->new();
+        XML::Axk::SAX::Handler->new($core);
     my $parser = XML::SAX::ParserFactory->parser(
         Handler => $handler,
     );

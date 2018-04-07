@@ -157,16 +157,52 @@ sub isMatch {   #static
     }
 } #isMatch()
 
+sub _run_pre_file {
+    my ($self, $infn) = @_ or croak("Need a filename");
+
+    foreach my $drAction (@{$self->{pre_file}}) {
+        eval { &$drAction($infn) };   # which context are they evaluated in?
+        croak "pre_file: $@" if $@;
+    }
+} # _run_pre_file
+
+sub _run_post_file {
+    my ($self, $infn) = @_ or croak("Need a filename");
+
+    foreach my $drAction (@{$self->{post_file}}) {
+        # TODO? make the last-seen node available to the action?
+        # Similar to awk, in which the END block sees the last line as $0.
+        eval { &$drAction($infn) };   # which context are they evaluated in?
+        croak "post_file: $@" if $@;
+    }
+} # _run_post_file
+
+# _run_worklist
+sub _run_worklist {
+    my $self = shift;
+    my %savs = (@_);
+
+    # Assign the SAVs
+    # TODO RESUME HERE
+
+    # Run the worklist
+    foreach my $lrItem (@{$self->{worklist}}) {
+        my ($refPattern, $refAction, $isPost) = @$lrItem;
+
+        next unless isMatch($refPattern, \$line);
+
+        eval { &$refAction };   # which context are they evaluated in?
+        croak "action: $@" if $@;
+    } #foreach worklist item
+} #_run_worklist
+
 # Run the loaded script(s) against a single filehandle.
 # TODO once I implement the different operating models (SAX, DOM, ?),
 # make one run_text_fh function for each operating model.
 sub run_text_fh {
     my ($self, $fh, $infn) = @_ or croak("Need a filehandle and filename");
 
-    foreach my $drAction (@{$self->{pre_file}}) {
-        eval { &$drAction($infn) };   # which context are they evaluated in?
-        croak "pre_file: $@" if $@;
-    }
+    $self->_run_pre_file($infn);
 
     my $FNR = 0;    # TODO make this an SAV
     while(my $line = <$fh>) {
@@ -190,12 +226,7 @@ sub run_text_fh {
         } #foreach worklist item
     } # foreach line
 
-    foreach my $drAction (@{$self->{post_file}}) {
-        # TODO? make the last-seen node available to the action?
-        # Similar to awk, in which the END block sees the last line as $0.
-        eval { &$drAction($infn) };   # which context are they evaluated in?
-        croak "post_file: $@" if $@;
-    }
+    $self->_run_post_file($infn);
 } #run_text_fh
 
 sub run_sax_fh {
@@ -206,7 +237,11 @@ sub run_sax_fh {
         $runner = XML::Axk::SAX::Runner->new($self);
     };
     die $@ if $@;
+
+    $self->_run_pre_file($infn);
     $runner->run($fh, $infn);
+    $self->_run_post_file($infn);
+
 } #run_sax_fh()
 
 # Run the loaded script(s).  Takes a list of inputs.  Strings are treated
