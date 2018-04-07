@@ -159,8 +159,8 @@ sub isMatch {   #static
 
 # Run the loaded script(s) against a single filehandle.
 # TODO once I implement the different operating models (SAX, DOM, ?),
-# make one run_fh function for each operating model.
-sub run_fh {
+# make one run_text_fh function for each operating model.
+sub run_text_fh {
     my ($self, $fh, $infn) = @_ or croak("Need a filehandle and filename");
 
     foreach my $drAction (@{$self->{pre_file}}) {
@@ -196,7 +196,18 @@ sub run_fh {
         eval { &$drAction($infn) };   # which context are they evaluated in?
         croak "post_file: $@" if $@;
     }
-} #run_fh
+} #run_text_fh
+
+sub run_sax_fh {
+    my ($self, $fh, $infn) = @_ or croak("Need a filehandle and filename");
+    my $runner;
+    eval {
+        use XML::Axk::SAX::Runner;
+        $runner = XML::Axk::SAX::Runner->new($self);
+    };
+    die $@ if $@;
+    $runner->run($fh, $infn);
+} #run_sax_fh()
 
 # Run the loaded script(s).  Takes a list of inputs.  Strings are treated
 # as filenames; references to strings are treated as raw data to be run
@@ -227,7 +238,8 @@ sub run {
                 # http://www.perlmonks.org/?node_id=745018
         }
 
-        $self->run_fh($fh, $infn);
+        #$self->run_text_fh($fh, $infn);
+        $self->run_sax_fh($fh, $infn);
 
         close($fh) or warn "close failed: $!";
 

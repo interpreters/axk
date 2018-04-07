@@ -7,7 +7,7 @@
 package XML::Axk::SAX::Handler;
 use XML::Axk::Base;
 
-use parent 'XML::Handler::BuildDOM';
+use parent 'XML::Axk::SAX::BuildDOM2';
 # General strategy: when encountering an element, call SUPER, then process.
 # When leaving an element, process, call SUPER, then remove the node we just
 # left from the DOM to keep the memory consumption down.
