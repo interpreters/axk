@@ -3,6 +3,10 @@ use strict;
 use XML::DOM;
 use Data::Dumper;
 
+# TODO support namespaces
+
+#use parent XML::SAX::Base; # TODO later
+
 our $VERSION;
 $VERSION = "1.50";
 
@@ -16,7 +20,7 @@ sub new
 {
     my ($class, %args) = @_;
     bless \%args, $class;
-}
+} #new()
 
 #-------- PerlSAX Handler methods ------------------------------
 
@@ -52,7 +56,7 @@ sub start_document # was Init
     $self->{EndDoc} = 0;
 
     undef $self->{LastText};
-}
+} #start_document()
 
 sub end_document # was Final
 {
@@ -64,7 +68,7 @@ sub end_document # was Final
         #?? do we always want to destroy the Doctype?
     }
     $self->{Document};
-}
+} #end_document()
 
 sub characters # was Char
 {
@@ -91,7 +95,7 @@ sub characters # was Char
             $self->{Element}->appendChild ($self->{LastText});
         }
     }
-}
+} #characters()
 
 sub start_element # was Start
 {
@@ -127,7 +131,8 @@ sub start_element # was Start
         for (my $i = 0; $i < $defaulted; $i++)
         {
             my $a = $order[$i];
-            my $att = $doc->createAttribute ($a, $attr->{$a}, 1);
+            my $att = $doc->createAttribute ($attr->{$a}->{LocalName},
+                $attr->{$a}->{Value}, 1);
             $node->setAttributeNode ($att);
         }
 
@@ -135,7 +140,9 @@ sub start_element # was Start
         for (my $i = $defaulted; $i < @order; $i++)
         {
             my $a = $order[$i];
-            my $att = $doc->createAttribute ($elem, $attr->{$a}, 0);
+            die "Defaulted attributes not supported!";
+                # Because I don't know what to do with them.
+            my $att = $doc->createAttribute ($elem, $attr->{$a}->{LocalName}, 0);
             $node->setAttributeNode ($att);
         }
     }
@@ -144,11 +151,12 @@ sub start_element # was Start
         # We're assuming that all attributes were specified (1)
         for my $a (keys %$attr)
         {
-            my $att = $doc->createAttribute ($a, $attr->{$a}, 1);
+            my $att = $doc->createAttribute ($attr->{$a}->{LocalName},
+                $attr->{$a}->{Value}, 1);
             $node->setAttributeNode ($att);
         }
     }
-}
+} #start_element()
 
 sub end_element
 {
@@ -158,7 +166,7 @@ sub end_element
 
     # Check for end of root element
     $self->{EndDoc} = 1 if ($self->{Element} == $self->{Document});
-}
+} #end_element
 
 sub entity_reference # was Default
 {
@@ -168,19 +176,19 @@ sub entity_reference # was Default
     $self->{Element}->appendChild (
                             $self->{Document}->createEntityReference ($name));
     undef $self->{LastText};
-}
+} #entity_reference()
 
 sub start_cdata
 {
     my $self = shift;
     $self->{InCDATA} = 1;
-}
+} #start_cdata()
 
 sub end_cdata
 {
     my $self = shift;
     $self->{InCDATA} = 0;
-}
+} #end_cdata()
 
 sub comment
 {
@@ -191,7 +199,7 @@ sub comment
     undef $self->{LastText};
     my $comment = $self->{Document}->createComment ($_[1]->{Data});
     $self->{Element}->appendChild ($comment);
-}
+} #comment()
 
 sub doctype_decl
 {
@@ -200,7 +208,7 @@ sub doctype_decl
     $self->{DocType}->setParams ($hash->{Name}, $hash->{SystemId},
                                  $hash->{PublicId}, $hash->{Internal});
     $self->{SawDocType} = 1;
-}
+} #doctype_decl()
 
 sub attlist_decl
 {
@@ -213,7 +221,7 @@ sub attlist_decl
                                  $hash->{Type},
                                  $hash->{Default},
                                  $hash->{Fixed});
-}
+} #attlist_decl()
 
 sub xml_decl
 {
@@ -226,7 +234,7 @@ sub xml_decl
                                                           $hash->{Version},
                                                           $hash->{Encoding},
                                                           $hash->{Standalone}));
-}
+} #xml_decl()
 
 sub entity_decl
 {
@@ -243,7 +251,7 @@ sub entity_decl
     $self->{DocType}->addEntity ($parameter, $hash->{Name}, $hash->{Value},
                                  $hash->{SystemId}, $hash->{PublicId},
                                  $hash->{Notation});
-}
+} #entity_decl()
 
 # Unparsed is called when it encounters e.g:
 #
@@ -257,7 +265,7 @@ sub unparsed_decl
 
     # same as regular ENTITY, as far as DOM is concerned
     $self->entity_decl ($hash);
-}
+} #unparsed_decl()
 
 sub element_decl
 {
@@ -267,7 +275,7 @@ sub element_decl
 
     undef $self->{LastText};
     $self->{DocType}->addElementDecl ($hash->{Name}, $hash->{Model});
-}
+} #element_decl()
 
 sub notation_decl
 {
@@ -278,7 +286,7 @@ sub notation_decl
     undef $self->{LastText};
     $self->{DocType}->addNotation ($hash->{Name}, $hash->{Base},
                                    $hash->{SystemId}, $hash->{PublicId});
-}
+} #notation_decl()
 
 sub processing_instruction
 {
@@ -289,7 +297,7 @@ sub processing_instruction
     undef $self->{LastText};
     $self->{Element}->appendChild (new XML::DOM::ProcessingInstruction
                         ($self->{Document}, $hash->{Target}, $hash->{Data}));
-}
+} #processing_instruction()
 
 return 1;
 
