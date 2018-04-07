@@ -1,6 +1,6 @@
 package XML::Axk::SAX::BuildDOM2;
 use strict;
-use XML::DOM;
+use XML::DOM;       # TODO change to XML::LibXML
 use Data::Dumper;
 
 # TODO support namespaces

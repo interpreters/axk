@@ -22,42 +22,54 @@ sub new
     return $self;
 }
 
+sub work {
+    my $self = shift;
+    $self->{axkcore}->_run_worklist(
+        D => $self->{Document},
+        E => $self->{Element}
+    );
+}
+
 # Handlers ============================================================== {{{1
 
 sub start_document {
     my $self = shift;
     $self->SUPER::start_document(@_);
-    #$self->{axkcore}->_run_worklist(a=>b...);  # SAVs are the params
+    $self->work;
 } #start_document()
 
 sub end_document {
     my $self = shift;
+    $self->work;
     $self->SUPER::end_document(@_);
 } #end_document()
 
-sub characters {
-    my $self = shift;
-    $self->SUPER::characters(@_);
-} #characters()
+#sub characters {
+#    my $self = shift;
+#    $self->SUPER::characters(@_);
+#} #characters()
 
 sub start_element {
     my $self = shift;
     $self->SUPER::start_element(@_);
+    $self->work;
 } #start_element()
 
 sub end_element {
     my $self = shift;
+    $self->work;
     $self->SUPER::end_element(@_);
 } #end_element()
 
-sub entity_reference {
-    my $self = shift;
-    $self->SUPER::entity_reference(@_);
-} #entity_reference()
+#sub entity_reference {
+#    my $self = shift;
+#    $self->SUPER::entity_reference(@_);
+#} #entity_reference()
 
 sub comment {
     my $self = shift;
     $self->SUPER::comment(@_);
+    $self->work;
 } #comment()
 
 # }}}1

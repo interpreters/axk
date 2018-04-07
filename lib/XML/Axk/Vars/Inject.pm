@@ -10,8 +10,9 @@ use vars;
 use XML::Axk::Vars::Scalar;
 use XML::Axk::Vars::Array;
 
-# Config: the variables to create
-my @create_vars = qw($C @F);
+# Config: the variables to create.
+# NOTE: these must be kept in sync with X::A::Core.  TODO fix this.
+my @create_vars = qw($C @F $D $E);
 
 # Helpers ======================================================== {{{2
 

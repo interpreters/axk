@@ -6,6 +6,13 @@
 package XML::Axk::Matcher::XPath;
 use XML::Axk::Base;
 
+our $DEBUG = false;
+
+sub _dump {
+    local $Data::Dumper::Maxdepth = 2;
+    Dumper @_;
+} #_dump()
+
 use Object::TinyDefaults
     {   kind => 'xpath',
         file => '(unknown source)',
@@ -23,11 +30,12 @@ sub new {
 
 sub test {
     my $self = shift;
-    my $refData = shift or return false;
+    my $hrSAV = shift or return false;
 
     eval {
-        say "XPath: Attempt to match `${$self->xpath}' against `$$refData` in ",
-        $self->file, ' at ', $self->line;
+        say "XPath: Attempt to match `${$self->xpath}' in ", $self->file,
+        ' at ', $self->line, ' against ', ref $hrSAV->{E};
+        say _dump $hrSAV if $DEBUG;
     };
     return true;    # for now
 } #test()

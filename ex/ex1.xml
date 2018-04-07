@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doc>
-	<item attrname="1">Foo</item>
-	<item attrname="2">Bar</item>
+	<item attrname="hello">Foo</item>
+	<item attrname="world">Bar</item>
 </doc>

@@ -12,12 +12,12 @@ use XML::Axk::Base qw(:default any);
 # Storage for routines defined by the user's scripts ==================== {{{1
 
 # Load these in the order they are defined in the scripts.
-our @pre_all = ();      # List of \& to run before reading the first file
-our @pre_file = ();     # List of \& to run before reading each file
-our @worklist = ();     # List of [$refCondition, \&action, $is_post]
-                        # to be run against each node.
-our @post_file = ();    # List of \& to run after reading each file
-our @post_all = ();     # List of \& to run after reading the last file
+#our @pre_all = ();      # List of \& to run before reading the first file
+#our @pre_file = ();     # List of \& to run before reading each file
+#our @worklist = ();     # List of [$refCondition, \&action, $is_post]
+#                        # to be run against each node.
+#our @post_file = ();    # List of \& to run after reading each file
+#our @post_all = ();     # List of \& to run after reading the last file
 
 # }}}1
 # Private vars ========================================================== {{{1
@@ -140,8 +140,8 @@ files.
 # }}}1
 # Running =============================================================== {{{1
 
-# Check for matches
-sub isMatch {   #static
+# Check for matches.  Superseded.
+sub isTextMatch {   #static
     #say "isMatch: ", Dumper(\@_);
     my ($refPattern, $refLine) = @_;
     my $ty = ref $refPattern;
@@ -154,6 +154,37 @@ sub isMatch {   #static
 
     } else {    # todo check ::can('test')?
         return $refPattern->test($refLine);       # TODO expand this
+    }
+} #isMatch()
+
+# Check for matches based on SAVs.
+sub isMatch {
+    #say "isMatch: ", Dumper(\@_);
+    my ($self, $refPattern) = @_;
+    my $sav = $self->{sav};
+    my $ty = ref $refPattern;
+
+    if($ty eq 'Regexp') {
+        carp "Regexp not yet implemented";
+        return false;
+
+        #return false unless ref $sav->{E};
+        #return $sav->{E} =~ $refPattern;    ## Note: not meaningful at the moment
+
+    } elsif($ty eq 'SCALAR') {      # matches if the line contains the scalar
+        carp "Scalar match not yet implemented";
+        return false;
+
+        #return false unless ref $sav->{E};
+        #return index($$refLine, $$refPattern) != -1;
+
+    } else {
+        if(my $test = $refPattern->can("test")) {;
+            return $refPattern->$test($sav);
+        } else {
+            carp "Pattern $refPattern doesn't implement test()";
+            return false;
+        }
     }
 } #isMatch()
 
@@ -180,16 +211,48 @@ sub _run_post_file {
 # _run_worklist
 sub _run_worklist {
     my $self = shift;
-    my %savs = (@_);
+    my $sav = $self->{sav};
+    my %new_savs = (@_);
 
-    # Assign the SAVs
-    # TODO RESUME HERE
+    # Assign the SAVs --------------
 
-    # Run the worklist
+    # Clear to default.  TODO automate syncing this with XAV::Inject.
+    $sav->{C} = "";
+    @{$sav->{F}} = ();
+    $sav->{D} = undef;
+    $sav->{E} = undef;
+
+    # Assign from params
+    while (my ($key, $value) = each %new_savs) {
+        unless(exists($sav->{$key})) {
+            carp "Can't assign nonexistent sav $key";
+            next;
+        }
+
+        if(ref $sav->{$key} eq 'ARRAY') {
+            unless(ref $value eq 'ARRAY') {
+                carp "Can't assign non-array to sav $key";
+                next;
+            }
+            @{$sav->{$key}} = @$value;
+
+        } elsif(ref $sav->{$key} eq 'HASH') {
+            unless(ref $value eq 'HASH') {
+                carp "Can't assign non-hash to sav $key";
+                next;
+            }
+            %{$sav->{$key}} = %$value;
+
+        } else {
+            $sav->{$key}=$value;
+        }
+    }
+
+    # Run the worklist -------------
     foreach my $lrItem (@{$self->{worklist}}) {
         my ($refPattern, $refAction, $isPost) = @$lrItem;
 
-        next unless isMatch($refPattern, \$line);
+        next unless $self->isMatch($refPattern);
 
         eval { &$refAction };   # which context are they evaluated in?
         croak "action: $@" if $@;
@@ -314,7 +377,12 @@ sub new {
         post_all => [],
 
         # Script-accessible vars
-        sav => { C => undef, F => []},          # storage for the SAVs
+        sav => {
+            C => undef,     # current line (old)
+            F => [],        # current fields in that line (old)
+            D => undef,     # current document
+            E => undef      # current element
+        },
         # NOTE: keys in sav are names without sigils.  I am not
         # sure whether this is more or less confusing than including the
         # sigils in the keys!  In any event, as a design decision, only one
