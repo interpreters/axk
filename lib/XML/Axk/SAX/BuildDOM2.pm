@@ -1,8 +1,13 @@
 package XML::Axk::SAX::BuildDOM2;
 use strict;
 use XML::DOM;
+use Data::Dumper;
 
-#
+our $VERSION;
+$VERSION = "1.50";
+
+our $DEBUG = 1;
+
 # TODO:
 # - add support for parameter entity references
 # - expand API: insert Elements in the tree or stuff into DocType etc.
@@ -21,7 +26,7 @@ sub start_document # was Init
 
     # Define Document if it's not set & not obtainable from Element or DocType
     $self->{Document} ||=
-	(defined $self->{Element} ? $self->{Element}->getOwnerDocument : undef)
+        (defined $self->{Element} ? $self->{Element}->getOwnerDocument : undef)
      || (defined $self->{DocType} ? $self->{DocType}->getOwnerDocument : undef)
      || new XML::DOM::Document();
 
@@ -29,15 +34,15 @@ sub start_document # was Init
 
     unless (defined $self->{DocType})
     {
-	$self->{DocType} = $self->{Document}->getDoctype
-	    if defined $self->{Document};
+        $self->{DocType} = $self->{Document}->getDoctype
+        if defined $self->{Document};
 
-	unless (defined $self->{Doctype})
-	{
-#?? should be $doc->createDocType for extensibility!
-	    $self->{DocType} = new XML::DOM::DocumentType ($self->{Document});
-	    $self->{Document}->setDoctype ($self->{DocType});
-	}
+        unless (defined $self->{Doctype})
+        {
+            #?? should be $doc->createDocType for extensibility!
+            $self->{DocType} = new XML::DOM::DocumentType ($self->{Document});
+            $self->{Document}->setDoctype ($self->{DocType});
+        }
     }
 
     # Prepare for document prolog
@@ -54,9 +59,9 @@ sub end_document # was Final
     my $self = shift;
     unless ($self->{SawDocType})
     {
-	my $doctype = $self->{Document}->removeDoctype;
-	$doctype->dispose;
-#?? do we always want to destroy the Doctype?
+        my $doctype = $self->{Document}->removeDoctype;
+        $doctype->dispose;
+        #?? do we always want to destroy the Doctype?
     }
     $self->{Document};
 }
@@ -68,23 +73,23 @@ sub characters # was Char
 
     if ($self->{InCDATA} && $self->{KeepCDATA})
     {
-	undef $self->{LastText};
-	# Merge text with previous node if possible
-	$self->{Element}->addCDATA ($str);
+        undef $self->{LastText};
+        # Merge text with previous node if possible
+        $self->{Element}->addCDATA ($str);
     }
     else
     {
-	# Merge text with previous node if possible
-	# Used to be:	$expat->{DOM_Element}->addText ($str);
-	if ($self->{LastText})
-	{
-	    $self->{LastText}->appendData ($str);
-	}
-	else
-	{
-	    $self->{LastText} = $self->{Document}->createTextNode ($str);
-	    $self->{Element}->appendChild ($self->{LastText});
-	}
+        # Merge text with previous node if possible
+        # Used to be: $expat->{DOM_Element}->addText ($str);
+        if ($self->{LastText})
+        {
+            $self->{LastText}->appendData ($str);
+        }
+        else
+        {
+            $self->{LastText} = $self->{Document}->createTextNode ($str);
+            $self->{Element}->appendChild ($self->{LastText});
+        }
     }
 }
 
@@ -93,14 +98,15 @@ sub start_element # was Start
     my ($self, $hash) = @_;
     my $elem = $hash->{Name};
     my $attr = $hash->{Attributes};
+    print "start_element:\n", Dumper($hash) if $DEBUG;
 
     my $parent = $self->{Element};
     my $doc = $self->{Document};
 
     if ($parent == $doc)
     {
-	# End of document prolog, i.e. start of first Element
-	$self->{InProlog} = 0;
+        # End of document prolog, i.e. start of first Element
+        $self->{InProlog} = 0;
     }
 
     undef $self->{LastText};
@@ -114,33 +120,33 @@ sub start_element # was Start
 
     if (exists $hash->{AttributeOrder})
     {
-	my $defaulted = $hash->{Defaulted};
-	my @order = @{ $hash->{AttributeOrder} };
+        my $defaulted = $hash->{Defaulted};
+        my @order = @{ $hash->{AttributeOrder} };
 
-	# Specified attributes
-	for (my $i = 0; $i < $defaulted; $i++)
-	{
-	    my $a = $order[$i];
-	    my $att = $doc->createAttribute ($a, $attr->{$a}, 1);
-	    $node->setAttributeNode ($att);
-	}
+        # Specified attributes
+        for (my $i = 0; $i < $defaulted; $i++)
+        {
+            my $a = $order[$i];
+            my $att = $doc->createAttribute ($a, $attr->{$a}, 1);
+            $node->setAttributeNode ($att);
+        }
 
-	# Defaulted attributes
-	for (my $i = $defaulted; $i < @order; $i++)
-	{
-	    my $a = $order[$i];
-	    my $att = $doc->createAttribute ($elem, $attr->{$a}, 0);
-	    $node->setAttributeNode ($att);
-	}
+        # Defaulted attributes
+        for (my $i = $defaulted; $i < @order; $i++)
+        {
+            my $a = $order[$i];
+            my $att = $doc->createAttribute ($elem, $attr->{$a}, 0);
+            $node->setAttributeNode ($att);
+        }
     }
     else
     {
-	# We're assuming that all attributes were specified (1)
-	for my $a (keys %$attr)
-	{
-	    my $att = $doc->createAttribute ($a, $attr->{$a}, 1);
-	    $node->setAttributeNode ($att);
-	}
+        # We're assuming that all attributes were specified (1)
+        for my $a (keys %$attr)
+        {
+            my $att = $doc->createAttribute ($a, $attr->{$a}, 1);
+            $node->setAttributeNode ($att);
+        }
     }
 }
 
@@ -160,7 +166,7 @@ sub entity_reference # was Default
     my $name = $_[1]->{Name};
 
     $self->{Element}->appendChild (
-			    $self->{Document}->createEntityReference ($name));
+                            $self->{Document}->createEntityReference ($name));
     undef $self->{LastText};
 }
 
@@ -192,7 +198,7 @@ sub doctype_decl
     my ($self, $hash) = @_;
 
     $self->{DocType}->setParams ($hash->{Name}, $hash->{SystemId},
-				 $hash->{PublicId}, $hash->{Internal});
+                                 $hash->{PublicId}, $hash->{Internal});
     $self->{SawDocType} = 1;
 }
 
@@ -203,10 +209,10 @@ sub attlist_decl
     local $XML::DOM::IgnoreReadOnly = 1;
 
     $self->{DocType}->addAttDef ($hash->{ElementName},
-				 $hash->{AttributeName},
-				 $hash->{Type},
-				 $hash->{Default},
-				 $hash->{Fixed});
+                                 $hash->{AttributeName},
+                                 $hash->{Type},
+                                 $hash->{Default},
+                                 $hash->{Fixed});
 }
 
 sub xml_decl
@@ -217,9 +223,9 @@ sub xml_decl
 
     undef $self->{LastText};
     $self->{Document}->setXMLDecl (new XML::DOM::XMLDecl ($self->{Document},
-							  $hash->{Version},
-							  $hash->{Encoding},
-							  $hash->{Standalone}));
+                                                          $hash->{Version},
+                                                          $hash->{Encoding},
+                                                          $hash->{Standalone}));
 }
 
 sub entity_decl
@@ -231,12 +237,12 @@ sub entity_decl
     # Parameter Entities names are passed starting with '%'
     my $parameter = 0;
 
-#?? parameter entities currently not supported by PerlSAX!
+    #?? parameter entities currently not supported by PerlSAX!
 
     undef $self->{LastText};
     $self->{DocType}->addEntity ($parameter, $hash->{Name}, $hash->{Value},
-				 $hash->{SystemId}, $hash->{PublicId},
-				 $hash->{Notation});
+                                 $hash->{SystemId}, $hash->{PublicId},
+                                 $hash->{Notation});
 }
 
 # Unparsed is called when it encounters e.g:
@@ -271,7 +277,7 @@ sub notation_decl
 
     undef $self->{LastText};
     $self->{DocType}->addNotation ($hash->{Name}, $hash->{Base},
-				   $hash->{SystemId}, $hash->{PublicId});
+                                   $hash->{SystemId}, $hash->{PublicId});
 }
 
 sub processing_instruction
@@ -282,7 +288,7 @@ sub processing_instruction
 
     undef $self->{LastText};
     $self->{Element}->appendChild (new XML::DOM::ProcessingInstruction
-			    ($self->{Document}, $hash->{Target}, $hash->{Data}));
+                        ($self->{Document}, $hash->{Target}, $hash->{Data}));
 }
 
 return 1;
@@ -336,3 +342,6 @@ If undefined, start_document will extract it from Document (if possible).
 Otherwise it adds a new XML::DOM::DocumentType to the Document.
 
 =back
+
+=cut
+# vi: set ts=4 sts=4 sw=4 et ai: #
