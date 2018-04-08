@@ -22,6 +22,10 @@ perform {
     $at = $E->getAttributeNode("moby") if $E->can("getAttributeNode");
     $v = $at->getValue if $at && $at->can("getValue");
     say "Ciao, subitem in the $v moby" if $v;
-} xpath("//subitem"), CIAO
+} xpath("//subitem"), CIAO;
+
+perform {
+    say "Hi, selector-matched subitem!";
+} sel("subitem"), HI;
 
 # vi: set ts=4 sts=4 sw=4 et ai ft=perl: #

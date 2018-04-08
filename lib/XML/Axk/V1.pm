@@ -22,8 +22,9 @@ use HTML::Selector::XPath qw(selector_to_xpath);
 use Scalar::Util qw(reftype);
 
 use parent 'Exporter';
-our @EXPORT = qw(pre_all pre_file post_file post_all perform always never xpath
-    HI BYE CIAO);
+our @EXPORT = qw(
+    pre_all pre_file post_file post_all perform
+    always never xpath sel);
 
 # Internal routines ============================================== {{{1
 
