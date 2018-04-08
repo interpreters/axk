@@ -206,9 +206,12 @@ sub _run_worklist {
     my $sav = $self->{sav};
     my %new_savs = (@_);
 
+    # TODO separate the internal variables for the doc and element from the
+    # SAVs.  Move assignment of the SAVs into Ln.pm.
+
     # Assign the SAVs --------------
 
-    # Clear to default.  TODO automate syncing this with XAV::Inject.
+    # Clear to default.  TODO automate syncing the SAVs with XAV::Inject.
     $sav->{C} = "";
     @{$sav->{F}} = ();
     $sav->{D} = undef;
