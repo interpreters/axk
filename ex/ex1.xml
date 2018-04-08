@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <doc>
-	<item attrname="hello">Foo</item>
+	<item attrname="hello">Foo
+        <subitem moby="high"/>
+    </item>
 	<item attrname="world">Bar</item>
 </doc>

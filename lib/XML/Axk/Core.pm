@@ -244,9 +244,11 @@ sub _run_worklist {
 
     # Run the worklist -------------
     foreach my $lrItem (@{$self->{worklist}}) {
+        #say Dumper($lrItem);
         my ($refPattern, $refAction, $when) = @$lrItem;
+        #say "At time $now: running ", Dumper($lrItem);
 
-        next if defined($when) && defined($now) && ($now xor $when);
+        next if $when && ($now != $when);
 
         next unless $self->isMatch($refPattern);
 

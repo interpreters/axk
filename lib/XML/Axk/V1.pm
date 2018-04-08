@@ -16,12 +16,13 @@ use XML::Axk::Base;
 use XML::Axk::Core;
 
 use XML::Axk::Matcher::XPath;
+use XML::Axk::Matcher::Always;
 use HTML::Selector::XPath qw(selector_to_xpath);
 
 use Scalar::Util qw(reftype);
 
 use parent 'Exporter';
-our @EXPORT = qw(pre_all pre_file post_file post_all perform always xpath
+our @EXPORT = qw(pre_all pre_file post_file post_all perform always never xpath
     HI BYE CIAO);
 
 # Internal routines ============================================== {{{1
@@ -64,7 +65,7 @@ sub post_all :prototype(&) {
 # }}}1
 # Definers for node actions ====================================== {{{1
 
-## @function public on (pattern, &action)
+## @function public perform (&action[, pattern[, when]])
 ## The main way to define pattern/action pairs.  This takes the action first
 ## since that's how Perl's prototypes are set up the cleanest (block first).
 ## @params required &action     A block to execute when the pattern matches
@@ -72,6 +73,7 @@ sub post_all :prototype(&) {
 sub perform :prototype(&@) {
     #say Dumper(\@_);
     my ($drAction, $refPattern, $when) = @_;
+    #say "perform(): ", Dumper(\@_);
     $when = $when // HI;    # only on entry, by default
 
     $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
@@ -87,10 +89,15 @@ sub perform :prototype(&@) {
 # attributes, namespaces, ... .  This is essentially a DSL for all the ways
 # you can write a pattern
 
-# Always match - a regex that always matches
+# Always match
 sub always :prototype() {
-    return qr//;
+    return XML::Axk::Matcher::Always->new();
 } #always()
+
+# Never match - for easily turning off a particular clause
+sub never :prototype() {
+    return XML::Axk::Matcher::Always->new(always => false);
+} #never()
 
 # Make an XPath matcher
 sub xpath :prototype(@) {

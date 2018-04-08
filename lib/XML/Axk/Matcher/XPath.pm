@@ -36,7 +36,7 @@ sub test {
         say "XPath: Attempt to match `${$self->xpath}' in ", $self->file,
         ' at ', $self->line, ' against ', ref $hrSAV->{E};
         say _dump $hrSAV if $DEBUG;
-    };
+    } if false;
     return true;    # for now
 } #test()
 

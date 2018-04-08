@@ -23,7 +23,7 @@ sub new
 }
 
 sub work {
-    my ($self, $now) = shift;
+    my ($self, $now) = @_;
     $self->{axkcore}->_run_worklist(
         $now,
         D => $self->{Document},

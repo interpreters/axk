@@ -21,9 +21,9 @@ use constant {
     false => !!0,
 
     # When to run an action --- pre, post, or both (CIAO).
-    HI => !!1,
-    BYE => !!0,
-    CIAO => undef,
+    HI => 2,
+    BYE => 1,
+    CIAO => 0,
 };
 
 our @EXPORT = qw(true false HI BYE CIAO);
