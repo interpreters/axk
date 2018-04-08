@@ -36,7 +36,7 @@ sub load_script_file {
     close $fh;
 
     $self->load_script_text($contents, $fn, false);
-        # false => scripts on disk MUST specify a Vn directive.  This is a
+        # false => scripts on disk MUST specify a Ln directive.  This is a
         # design decision, so we don't have issues like Perl 5/6 or Python 2/3.
 
 } #load_script_file
@@ -45,13 +45,13 @@ sub load_script_file {
 # @param $self
 # @param $text {String} The source text
 # @param $fn {String}   Filename to use in debugging messages
-# @param $add_Vn {boolean, default false} If true, add a Vn directive for the
+# @param $add_Ln {boolean, default false} If true, add a Ln directive for the
 #           current version if there isn't one in the script.
 sub load_script_text {
     my $self = shift;
     my $text = shift;
     my $fn = shift // '(command line)';
-    my $add_Vn = shift;
+    my $add_Ln = shift;
 
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
@@ -60,40 +60,38 @@ sub load_script_text {
 
 =head1 SPECIFYING THE AXK LANGUAGE VERSION
 
-An axk script can include a C<Vn> pragma that specifies the axk
-language version in use.  For example, C<V1> (or, C<V 1>, C<V01>,
-C<V001>, ...) calls for language version 1 (currently defined in
-C<XML::Axk::V1>).  The C<Vn> must be the first non-whitespace item
+An axk script can include a C<Ln> pragma that specifies the axL1
+language version in use.  For example, C<L1> (or, C<L 1>, C<L01>,
+C<L001>, ...) calls for language version 1 (currently defined in
+C<XML::Axk::L1>).  The C<Ln> must be the first non-whitespace item
 on a line.
 
-An axk script on disk without a Vn pragma is an error.  This means
-that the language version must be specified in the C<Vn> form, not as
-a direct C<use ...::Vn;> statement.  This is so that C<Vn> can expand
+An axk script on disk without a Ln pragma is an error.  This means
+that the language version must be specified in the C<Ln> form, not as
+a direct C<use ...::Ln;> statement.  This is so that C<Ln> can expand
 to something different depending on the language version, if
-necessary.  However, you can say `use...Vn` manually _in addition to_
+necessary.  However, you can say `use...Ln` manually _in addition to_
 the pragma (e.g., in a different package).
 
-Multiple C<Vn> pragmas are allowed in a file.  This is so you can use
+Multiple C<Ln> pragmas are allowed in a file.  This is so you can use
 different language versions in different packages if you want to.
 However, you do so at your own risk!
 
-Command-line scripts without a C<Vn> pragma use the latest version
+Command-line scripts without a C<Ln> pragma use the latest version
 automatically.  That is, the behaviour is like perl's C<-E> rather than
 perl's C<-e>.  That risks breakage of inline scripts, but makes it easier
 to use axk from the command line.  If you are using axk in a script,
-specify the C<Vn> pragma at the beginning of your script.  This is
+specify the C<Ln> pragma at the beginning of your script.  This is
 consistent with the requirement to list the version in your source
 files.
 
 =cut
 
-    # TODO change all `Vn` to `Ln` for _L_anguage.  That way L# is
-    # clearly decoupled from axk version.
-    unless($text =~ s{^\h*V\h*0*(\d+)\h*;?}{use XML::Axk::V$1;}mg) {
-        if($add_Vn) {
-            $leader = "use XML::Axk::V1;\n";    # To be updated over time
+    unless($text =~ s{^\h*L\h*0*(\d+)\h*;?}{use XML::Axk::L$1;}mg) {
+        if($add_Ln) {
+            $leader = "use XML::Axk::L1;\n";    # To be updated over time
         } else {
-            croak "No version (Vn) specified in file $fn";
+            croak "No version (Ln) specified in file $fn";
         }
     }
 

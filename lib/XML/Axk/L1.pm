@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# XML::Axk::V1 - axk language, version 1
+# XML::Axk::L1 - axk language, version 1
 # Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
 
 # TODO:
@@ -11,7 +11,7 @@
 # - Add a static method to XAC to get the next package name, so that each
 #   `axk_script_*` is used by only one Core instance.
 
-package XML::Axk::V1;
+package XML::Axk::L1;
 use XML::Axk::Base;
 use XML::Axk::Core;
 
