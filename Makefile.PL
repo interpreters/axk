@@ -31,6 +31,7 @@ WriteMakefile(
         'Tie::Scalar' => '0',
         'Tie::Array' => '0',
         'Tie::Hash' => '0',
+        'XML::DOM::XPath' => '0',
         'XML::Handler::BuildDOM' => '0',
         'HTML::Selector::XPath' => '0',
         #'XML::LibXML::jQuery' => '0',

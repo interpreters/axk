@@ -6,11 +6,15 @@ perform { say "hi  ", $E->getTagName if $E->can("getTagName"); } always, HI;
 perform { say "bye ", $E->getTagName if $E->can("getTagName"); } always, BYE;
 
 perform {
+    say "Found attrname world";
+} xpath('//item[@attrname="world"]'), HI;
+
+perform {
     my($at, $v);
     #say ref $E;
     $at = $E->getAttributeNode("attrname") if $E->can("getAttributeNode");
     $v = $at->getValue if $at && $at->can("getValue");
-    say $v if $v;
+    say "Item: $v" if $v;
 } xpath("//item"), BYE;
 
 perform {

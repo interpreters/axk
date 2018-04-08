@@ -1,6 +1,6 @@
 package XML::Axk::SAX::BuildDOM2;
 use strict;
-use XML::DOM;       # TODO change to XML::LibXML
+use XML::Axk::DOM;
 use Data::Dumper;
 
 # TODO support namespaces
@@ -10,7 +10,7 @@ use Data::Dumper;
 our $VERSION;
 $VERSION = "1.50";
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 # TODO:
 # - add support for parameter entity references

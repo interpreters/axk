@@ -13,9 +13,9 @@ use Object::Tiny qw(axkcore handler parser);
 sub run {
     my ($self, $fh, $infn) = @_ or croak("Need a filehandle and filename");
     #$XML::DOM::SafeMode=0;
-    $XML::Axk::SAX::BuildDOM2::DEBUG = 0;
+    #$XML::Axk::SAX::BuildDOM2::DEBUG = 0;
     $self->parser->parse_file($fh);
-    say "--- Got XML:\n", $self->handler->{Document}->toString, "\n---\n";
+    #say "--- Got XML:\n", $self->handler->{Document}->toString, "\n---\n";
 } #run()
 
 sub new

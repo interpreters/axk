@@ -6,6 +6,7 @@
 
 package XML::Axk::SAX::Handler;
 use XML::Axk::Base;
+use XML::Axk::DOM;
 
 use parent 'XML::Axk::SAX::BuildDOM2';
 # General strategy: when encountering an element, call SUPER, then process.

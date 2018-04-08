@@ -319,7 +319,7 @@ sub run {
 
     foreach my $infn (@_) {
         my $fh;
-        say "Processing $infn";
+        #say "Processing $infn";
 
         # Clear the SAVs before each file for consistency.
         $self->{sav}->{C} = undef;
