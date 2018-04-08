@@ -6,7 +6,7 @@ perform { say "hi  ", $E->getTagName if $E->can("getTagName"); } always, HI;
 perform { say "bye ", $E->getTagName if $E->can("getTagName"); } always, BYE;
 
 perform {
-    say "Found attrname world";
+    say "Hi, attrname world!";
 } xpath('//item[@attrname="world"]'), HI;
 
 perform {
@@ -14,14 +14,14 @@ perform {
     #say ref $E;
     $at = $E->getAttributeNode("attrname") if $E->can("getAttributeNode");
     $v = $at->getValue if $at && $at->can("getValue");
-    say "Item: $v" if $v;
+    say "Bye, item: $v" if $v;
 } xpath("//item"), BYE;
 
 perform {
     my($at, $v);
     $at = $E->getAttributeNode("moby") if $E->can("getAttributeNode");
     $v = $at->getValue if $at && $at->can("getValue");
-    say "subitem in the $v moby" if $v;
+    say "Ciao, subitem in the $v moby" if $v;
 } xpath("//subitem"), CIAO
 
 # vi: set ts=4 sts=4 sw=4 et ai ft=perl: #
