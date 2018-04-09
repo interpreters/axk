@@ -1,5 +1,7 @@
 L1
 
+say "Language: $_AxkLang";
+
 perform { say "** This shouldn't have happened" } never;
 
 perform { say "hi  ", $E->getTagName if $E->can("getTagName"); } always, HI;

@@ -20,6 +20,8 @@ use constant {
     true => !!1,
     false => !!0,
 
+    SCRIPT_PKG_PREFIX => 'axk_script_',
+
     # When to run an action --- pre, post, or both (CIAO).
     HI => 2,
     BYE => 1,
@@ -27,10 +29,10 @@ use constant {
 };
 
 our @EXPORT = qw(true false HI BYE CIAO);
-our @EXPORT_OK = qw(any);
+our @EXPORT_OK = qw(any SCRIPT_PKG_PREFIX);
 our %EXPORT_TAGS = (
     default => [@EXPORT],
-    all => [qw(true false any)]
+    all => [@EXPORT, @EXPORT_OK]
 );
 
 BEGIN {

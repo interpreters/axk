@@ -7,11 +7,17 @@
 #   "b" or "is" (boolean), "s" (string)
 
 package XML::Axk::Core;
-use XML::Axk::Base qw(:default any);
+use XML::Axk::Base qw(:all);
 
-# Storage for routines defined by the user's scripts ==================== {{{1
+# TODO
+# - throughout: Rename SAVs to SPs (Script Parameters).
+# - Add an SP registry to new X::A::LangBase.  Each XALn uses LangBase and
+#   registers itself in the SP registry.
+# - Each XALn croaks if another Ln is already loaded.
+# - Each XALn stores its package name in `our $_AxkLang` in each script
+# - Update XAVI: pull the vars from the SP registry based on $_AxkLang.
+#   If the SP slots don't exist in the XAC instance, create them.
 
-# }}}1
 # Private vars ========================================================== {{{1
 
 # For giving each script a unique package name
@@ -106,7 +112,7 @@ files.
         # Thanks to https://www.effectiveperlprogramming.com/2011/06/set-the-line-number-and-filename-of-string-evals/
 
     # Put the user's script in its own package
-    $leader = "package axk_script_$scriptnumber {\n" .
+    $leader = "package ". SCRIPT_PKG_PREFIX . "$scriptnumber {\n" .
         "use XML::Axk::Base;\n" .
         "use XML::Axk::Vars::Inject;\n" .
         'our $_AxkCore = $' . $self->global_name . ";\n" .

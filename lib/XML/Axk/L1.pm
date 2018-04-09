@@ -13,7 +13,9 @@
 
 package XML::Axk::L1;
 use XML::Axk::Base;
-use XML::Axk::Core;
+#use XML::Axk::Core;
+
+use XML::Axk::Language L=>1;
 
 use XML::Axk::Matcher::XPath;
 use XML::Axk::Matcher::Always;
@@ -21,7 +23,7 @@ use HTML::Selector::XPath qw(selector_to_xpath);
 
 use Scalar::Util qw(reftype);
 
-use parent 'Exporter';
+use Exporter 'import';
 our @EXPORT = qw(
     pre_all pre_file post_file post_all perform
     always never xpath sel);
