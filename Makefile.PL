@@ -3,6 +3,10 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+sub MY::postamble {
+    return "authortest:\n\tRELEASE_TESTING=1 prove -l xt";
+}
+
 WriteMakefile(
     NAME            => 'XML::Axk',
     AUTHOR          => q{Christopher White <cxwembedded@gmail.com>},
