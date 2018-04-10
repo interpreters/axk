@@ -11,13 +11,8 @@ use XML::Axk::Base qw(:all);
 use XML::Axk::Language ();
 
 # TODO
-# - throughout: Rename SAVs to SPs (Script Parameters).
-# - DONE Add an SP registry to new X::A::LangBase.  Each XALn uses LangBase and
-#   registers itself in the SP registry.
-# - DONE Each XALn croaks if another Ln is already loaded.
-# - DONE Each XALn stores its package name in `our $_AxkLang` in each script
-# - Update XAVI: pull the vars from the SP registry based on $_AxkLang.
-#   If the SP slots don't exist in the XAC instance, create them.
+# - create the core vars
+# - move assignment of the SPs based on the core vars out to the XALn packages.
 
 # Private vars ========================================================== {{{1
 
@@ -135,47 +130,30 @@ files.
 # }}}1
 # Running =============================================================== {{{1
 
-# Check for matches.  Superseded.
-sub isTextMatch {   #static
-    #say "isMatch: ", Dumper(\@_);
-    my ($refPattern, $refLine) = @_;
-    my $ty = ref $refPattern;
-
-    if($ty eq 'Regexp') {
-        return $$refLine =~ $refPattern;
-
-    } elsif($ty eq 'SCALAR') {      # matches if the line contains the scalar
-        return index($$refLine, $$refPattern) != -1;
-
-    } else {    # todo check ::can('test')?
-        return $refPattern->test($refLine);       # TODO expand this
-    }
-} #isMatch()
-
-# Check for matches based on SAVs.
+# Check for matches based on SPs.
 sub isMatch {
     #say "isMatch: ", Dumper(\@_);
     my ($self, $refPattern) = @_;
-    my $sav = $self->{sav};
+    my $sp = $self->{sp}->{"XML::Axk::L1"};     # Hardcoded for now - FIXME
     my $ty = ref $refPattern;
 
     if($ty eq 'Regexp') {
         carp "Regexp not yet implemented";
         return false;
 
-        #return false unless ref $sav->{E};
-        #return $sav->{E} =~ $refPattern;    ## Note: not meaningful at the moment
+        #return false unless ref $sp->{E};
+        #return $sp->{E} =~ $refPattern;    ## Note: not meaningful at the moment
 
     } elsif($ty eq 'SCALAR') {      # matches if the line contains the scalar
         carp "Scalar match not yet implemented";
         return false;
 
-        #return false unless ref $sav->{E};
+        #return false unless ref $sp->{E};
         #return index($$refLine, $$refPattern) != -1;
 
     } else {
         if(my $test = $refPattern->can("test")) {;
-            return $refPattern->$test($sav);
+            return $refPattern->$test($sp);
         } else {
             carp "Pattern $refPattern doesn't implement test()";
             return false;
@@ -208,47 +186,48 @@ sub _run_worklist {
     my $self = shift;
     my $now = shift;        # $now = HI, BYE, or CIAO
 
-    my $sav = $self->{sav};
-    my %new_savs = (@_);
+    my $sp = $self->{sp}->{"XML::Axk::L1"};     # FIXME
+    my %new_sps = (@_);
 
     # TODO separate the internal variables for the doc and element from the
-    # SAVs.  Move assignment of the SAVs into Ln.pm.
+    # SPs.  Move assignment of the SPs into Ln.pm.
 
-    # Assign the SAVs --------------
+    # Assign the SPs ---------------
 
-    # Clear to default.  TODO automate syncing the SAVs with XAV::Inject.
-    $sav->{C} = "";
-    @{$sav->{F}} = ();
-    $sav->{D} = undef;
-    $sav->{E} = undef;
+    # Clear to default.  TODO move this out to the XALn packages.
+    $sp->{'$C'} = "";
+    @{$sp->{'@F'}} = ();
+    $sp->{'$D'} = undef;
+    $sp->{'$E'} = undef;
 
     # Assign from params
-    while (my ($key, $value) = each %new_savs) {
-        unless(exists($sav->{$key})) {
-            carp "Can't assign nonexistent sav $key";
+    while (my ($key, $value) = each %new_sps) {
+        unless(exists($sp->{$key})) {
+            carp "Can't assign nonexistent SP $key";
             next;
         }
 
-        if(ref $sav->{$key} eq 'ARRAY') {
+        if(ref $sp->{$key} eq 'ARRAY') {
             unless(ref $value eq 'ARRAY') {
-                carp "Can't assign non-array to sav $key";
+                carp "Can't assign non-array to SP $key";
                 next;
             }
-            @{$sav->{$key}} = @$value;
+            @{$sp->{$key}} = @$value;
 
-        } elsif(ref $sav->{$key} eq 'HASH') {
+        } elsif(ref $sp->{$key} eq 'HASH') {
             unless(ref $value eq 'HASH') {
-                carp "Can't assign non-hash to sav $key";
+                carp "Can't assign non-hash to SP $key";
                 next;
             }
-            %{$sav->{$key}} = %$value;
+            %{$sp->{$key}} = %$value;
 
         } else {
-            $sav->{$key}=$value;
+            $sp->{$key}=$value;
         }
     }
 
     # Run the worklist -------------
+
     foreach my $lrItem (@{$self->{worklist}}) {
         #say Dumper($lrItem);
         my ($refPattern, $refAction, $when) = @$lrItem;
@@ -262,39 +241,6 @@ sub _run_worklist {
         croak "action: $@" if $@;
     } #foreach worklist item
 } #_run_worklist
-
-# Run the loaded script(s) against a single filehandle.
-# TODO once I implement the different operating models (SAX, DOM, ?),
-# make one run_text_fh function for each operating model.
-sub run_text_fh {
-    my ($self, $fh, $infn) = @_ or croak("Need a filehandle and filename");
-
-    $self->_run_pre_file($infn);
-
-    my $FNR = 0;    # TODO make this an SAV
-    while(my $line = <$fh>) {
-        say "\nLine ", ++$FNR, '==========================';
-        #say "Got $line";
-
-        # Send the SAV values to the user's scripts
-        $self->{sav}->{C} = $line;
-        @{$self->{sav}->{F}} = split ' ', $line;
-
-        #say join ' ', 'main loop $C',\$self->{sav}->{C},
-        #       '@F',\@{$self->{sav}->{F}};
-
-        foreach my $lrItem (@{$self->{worklist}}) {
-            my ($refPattern, $refAction, $when) = @$lrItem;
-
-            next unless isTextMatch($refPattern, \$line);
-
-            eval { &$refAction };   # which context are they evaluated in?
-            croak "action: $@" if $@;
-        } #foreach worklist item
-    } # foreach line
-
-    $self->_run_post_file($infn);
-} #run_text_fh
 
 sub run_sax_fh {
     my ($self, $fh, $infn) = @_ or croak("Need a filehandle and filename");
@@ -329,9 +275,9 @@ sub run {
         my $fh;
         #say "Processing $infn";
 
-        # Clear the SAVs before each file for consistency.
-        $self->{sav}->{C} = undef;
-        @{$self->{sav}->{F}} = ();
+        # Clear the SPs before each file for consistency.
+        $self->{sp}->{'$C'} = undef;
+        @{$self->{sp}->{'@F'}} = ();
 
         # For now, just process lines rather than XML nodes.
         if($infn eq '-') {  # stdin
@@ -391,17 +337,10 @@ sub new {
         post_file => [],
         post_all => [],
 
-        # Script-accessible vars
-        sav => {
-            C => undef,     # current line (old)
-            F => [],        # current fields in that line (old)
-            D => undef,     # current document
-            E => undef      # current element
-        },
-        # NOTE: keys in sav are names without sigils.  I am not
-        # sure whether this is more or less confusing than including the
-        # sigils in the keys!  In any event, as a design decision, only one
-        # sigil will be used for each name (i.e., no $foo and @foo).
+        # Script parameters, indexed by language name (X::A::Ln).
+        # Format: { lang name => { varname with sigil => value, ... }, ... }
+        sp => {},
+
     };
     my $self = bless($data, $class);
 
@@ -414,6 +353,23 @@ sub new {
 
     return $self;
 } #new()
+
+# Allocate the SPs for a particular language.
+# All the SPs must be given in one call.  Subsequent calls are nops.
+sub allocate_sps {
+    my $self = shift;
+    my $lang = shift;
+    return if exists $self->{sp}->{$lang};
+    my $hr = $self->{sp}->{$lang} = {};
+
+    for my $name (@_) {
+        my $sigil = substr($name, 0, 1);
+        $self->{sp}->{$lang}->{$name} = undef, next if $sigil eq '$';
+        $self->{sp}->{$lang}->{$name} = [], next if $sigil eq '@';
+    }
+
+    say Dumper \%{$self->{sp}};
+} #allocate_sp()
 
 # RO accessors
 sub id {

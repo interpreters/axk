@@ -13,7 +13,6 @@
 
 package XML::Axk::L1;
 use XML::Axk::Base;
-#use XML::Axk::Core;
 
 use XML::Axk::Matcher::XPath;
 use XML::Axk::Matcher::Always;
@@ -142,8 +141,8 @@ sub import {
         # By doing this here rather than in the `use` statement,
         # we get $target and don't have to walk the stack to find the
         # axk script.
-    goto &Exporter::import;
-}
+    goto &Exporter::import;     # for @EXPORT &c.  @_ is what it was on entry.
+} #import()
 
 #}}}1
 1;

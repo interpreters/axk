@@ -27,8 +27,8 @@ sub work {
     my ($self, $now) = @_;
     $self->{axkcore}->_run_worklist(
         $now,
-        D => $self->{Document},
-        E => $self->{Element}
+        '$D' => $self->{Document},
+        '$E' => $self->{Element}
     );
 }
 

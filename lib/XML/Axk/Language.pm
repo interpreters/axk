@@ -12,42 +12,29 @@ use XML::Axk::Vars::Array;
 
 # Registry mapping XALn package names to arrayrefs of the script parameters
 # (SPs) for those packages.
-our %SP_Registry = ();
-
-## Find the axk_script_n package above us in the tree, if any.
-#sub find_axk_script_package {
-#    my $level = 0;
-#    my $pkg;
-#    my $re = '^' . SCRIPT_PKG_PREFIX . '\d';
-#    $re = qr/$re/;
-#
-#    while(defined($pkg = caller($level))) {
-#        return $pkg if $pkg =~ $re;
-#        ++$level;
-#    }
-#
-#    return undef;
-#} #find_axk_script_package()
+#our %SP_Registry = ();
 
 # Variable injection ============================================= {{{2
 
-sub inject_var {
-    my ($instance, $target, $varname) = @_;
+# Regular function (not a class or instance method).
+# Sets up the tie between an SP in the script and its storage in the core.
+sub _inject_var {
+    my ($core, $target, $lang, $varname) = @_;
     my $basename = substr($varname, 1);
     no strict 'refs';
 
     if(substr($varname, 0, 1) eq '$') {         # scalar
         tie(${"${target}::${basename}"}, 'XML::Axk::Vars::Scalar',
-            $instance, $basename);
+            $core, $lang, $varname);
 
     } elsif(substr($varname, 0, 1) eq '@') {    # array
         tie(@{"${target}::${basename}"}, 'XML::Axk::Vars::Array',
-            $instance, $basename);
+            $core, $lang, $varname);
 
     } else {
         croak "Can't inject unknown var type $varname";
     }
-} #inject_var()
+} #_inject_var()
 
 # }}}2
 # Export ========================================================= {{{1
@@ -61,16 +48,16 @@ sub import {
     #say "XALanguage run from $target:\n", Devel::StackTrace->new->as_string;
 
     # Set up the registry
-    $SP_Registry{$lang} = [] unless exists $SP_Registry{$lang};
-    my $lrRegistry = $SP_Registry{$lang};
+    #$SP_Registry{$lang} = [] unless exists $SP_Registry{$lang};
+    #my $lrRegistry = $SP_Registry{$lang};
 
     my %opts = ( $#_>0 && $#_ ? @_ : () );  # even number of args => options
+    my @sps;
 
     # sp: populate the registry with the given variables.
-    # We keep our own copy of the provided list.
     if(exists $opts{sp} && $opts{sp}) {
         croak "Need an arrayref for the SPs" unless ref $opts{sp} eq 'ARRAY';
-        push @{$lrRegistry}, @{$opts{sp}};
+        @sps = @{$opts{sp}};
     } #`sp` option
 
     my $core;   # _AxkCore in the target, if any
@@ -93,11 +80,12 @@ sub import {
         };
 
         # Inject the script parameters
-        if(@$lrRegistry) {
-            vars->import::into($script, @$lrRegistry);
+        if(@sps) {
+            vars->import::into($script, @sps);
 
             if($core) {     # Link the SPs in $script to storage in $core
-                inject_var $core, $script, $_ for @$lrRegistry;
+                $core->allocate_sps($lang, @sps);
+                _inject_var($core, $script, $lang, $_) for @sps;
             }
         }
 

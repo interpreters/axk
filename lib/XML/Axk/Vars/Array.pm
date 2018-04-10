@@ -17,10 +17,11 @@ use parent -norequire => 'Tie::StdArray';
 sub TIEARRAY {
     my $class = shift;
     my $instance = shift or croak('No instance');
+    my $lang = shift or croak('No language name');
     my $varname = shift or croak("No varname");     # the var to create
 
     #say "Tying array \$$varname to $instance";
-    return bless $instance->{sav}->{$varname}, $class;
+    return bless $instance->{sp}->{$lang}->{$varname}, $class;
 } #TIEARRAY()
 
 # }}}1

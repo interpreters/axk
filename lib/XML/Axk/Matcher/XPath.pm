@@ -51,7 +51,7 @@ sub test {
     # (https://metacpan.org/source/MIROD/XML-DOM-XPath-0.14/XPath.pm#L59)
     # swaps the order of the document and node parameters in the call to
     # xp->matches().
-    return $hrSAV->{D}->xp->matches($hrSAV->{E}, $self->xpath, $hrSAV->{D});
+    return $hrSAV->{'$D'}->xp->matches($hrSAV->{'$E'}, $self->xpath, $hrSAV->{'$D'});
         # Match {E} against path xpath, in context {D}.
 
     #return $hrSAV->{D}->matches($hrSAV->{E}, $self->xpath);    # nope
