@@ -4,54 +4,68 @@ package XML::Axk::Language;
 use XML::Axk::Base ':all';
 use Import::Into;
 use vars;
+#use Devel::StackTrace;
 
 # Registry mapping XALn package names to arrayrefs of the script parameters
 # (SPs) for those packages.
 our %SP_Registry = ();
 
-# Find the axk_script_n package above us in the tree, if any.
-sub find_axk_script_package {
-    my $level = 0;
-    my $pkg;
-    my $re = '^' . SCRIPT_PKG_PREFIX . '\d';
-    $re = qr/$re/;
-
-    while(defined($pkg = caller($level))) {
-        return $pkg if $pkg =~ $re;
-        ++$level;
-    }
-
-    return undef;
-} #find_axk_script_package()
+## Find the axk_script_n package above us in the tree, if any.
+#sub find_axk_script_package {
+#    my $level = 0;
+#    my $pkg;
+#    my $re = '^' . SCRIPT_PKG_PREFIX . '\d';
+#    $re = qr/$re/;
+#
+#    while(defined($pkg = caller($level))) {
+#        return $pkg if $pkg =~ $re;
+#        ++$level;
+#    }
+#
+#    return undef;
+#} #find_axk_script_package()
 
 sub import {
-    my $target = caller;
+    my $lang = caller;
     my $class = shift;
-    return if $class ne __PACKAGE__;
+    if($class ne __PACKAGE__) {     # do I need this?
+        confess(__PACKAGE__ . " initializer called from class $class");
+    }
+
+    #say "XALanguage run from $target:\n", Devel::StackTrace->new->as_string;
 
     # Set up the registry
-    $SP_Registry{$target} = {} unless exists $SP_Registry{$target};
+    $SP_Registry{$lang} = [] unless exists $SP_Registry{$lang};
+    my $lrRegistry = $SP_Registry{$lang};
 
-    return unless $#_>0 && $#_;     # even number of args => options
-    my %opts = @_;
+    my %opts = ( $#_>0 && $#_ ? @_ : () );  # even number of args => options
 
-    my $script = find_axk_script_package;   # if any
+    # sp: populate the registry with the given variables.
+    # We keep our own copy of the provided list.
+    if(exists $opts{sp} && $opts{sp}) {
+        croak "Need an arrayref for the SPs" unless ref $opts{sp} eq 'ARRAY';
+        push @{$lrRegistry}, @{$opts{sp}};
+    } #`sp` option
 
-    # L: mark the calling axk_script (if any)
-    if(exists $opts{L} && defined $script) {
+    # target: mark the given axk_script (if any)
+    if(exists $opts{target} && $opts{target}) {
+        my $script = $opts{target};
         my $varname = "${script}::_AxkLang";
+        #say "Loading $varname with $lang";
         do {
             no strict 'refs';
-            croak "Can't declare two languages in a script" if defined ${$varname};
+            croak "A script can only use one language" if defined ${$varname};
+            vars->import::into($script, '$' . ($varname =~ s/^.*:://r));
+            ${$varname} = $lang;
         };
 
-        vars->import::into($script, '$_AxkLang');
+        # Inject the variables
+        if(@$lrRegistry) {
+            # TODO RESUME HERE
+            #vars->import::into($script, @$lrRegistry);
+        }
 
-        do {
-            no strict 'refs';
-            ${$varname} = 0 + $opts{L};    # always numeric
-        };
-    } #option L
+    } #`target` option
 
 } #import()
 
@@ -74,15 +88,18 @@ Version 0.01
 
 When implementing a language:
 
-   use XML::Axk::Language L=>123;
+    require XML::Axk::Language;
+    sub import {
+        XML::Axk::Language->import( target => caller, sp => [qw($foo @bar)] );
+    }
 
-where C<123> is the language number.
+The C<target> option is the package to load into, and the C<sp> option is
+the list of script parameters to load.
 
 If all you need is the registry:
 
-   use XML::Axk::Language;
-
-=head1 ACKNOWLEDGEMENTS
+    use XML::Axk::Language ();
+    # Then do something with @XML::Axk::Language::SP_Registry.
 
 =head1 LICENSE AND COPYRIGHT
 

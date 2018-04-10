@@ -8,13 +8,14 @@
 
 package XML::Axk::Core;
 use XML::Axk::Base qw(:all);
+use XML::Axk::Language ();
 
 # TODO
 # - throughout: Rename SAVs to SPs (Script Parameters).
-# - Add an SP registry to new X::A::LangBase.  Each XALn uses LangBase and
+# - DONE Add an SP registry to new X::A::LangBase.  Each XALn uses LangBase and
 #   registers itself in the SP registry.
-# - Each XALn croaks if another Ln is already loaded.
-# - Each XALn stores its package name in `our $_AxkLang` in each script
+# - DONE Each XALn croaks if another Ln is already loaded.
+# - DONE Each XALn stores its package name in `our $_AxkLang` in each script
 # - Update XAVI: pull the vars from the SP registry based on $_AxkLang.
 #   If the SP slots don't exist in the XAC instance, create them.
 
@@ -318,6 +319,8 @@ sub run_sax_fh {
 # disk file named '-', read its contents first and pass them in as a ref.
 sub run {
     my $self = shift;
+
+    #say "SPs:\n", Dumper(\%XML::Axk::Language::SP_Registry);
 
     foreach my $drAction (@{$self->{pre_all}}) {
         eval { &$drAction };   # which context are they evaluated in?

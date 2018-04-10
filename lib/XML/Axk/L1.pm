@@ -15,18 +15,22 @@ package XML::Axk::L1;
 use XML::Axk::Base;
 #use XML::Axk::Core;
 
-use XML::Axk::Language L=>1;
-
 use XML::Axk::Matcher::XPath;
 use XML::Axk::Matcher::Always;
 use HTML::Selector::XPath qw(selector_to_xpath);
 
 use Scalar::Util qw(reftype);
 
-use Exporter 'import';
+# Packages we invoke by hand
+require XML::Axk::Language;
+require Exporter;
 our @EXPORT = qw(
     pre_all pre_file post_file post_all perform
     always never xpath sel);
+our @EXPORT_OK = qw( @SP_names );
+
+# Script-parameter names
+our @SP_names = qw($C @F $D $E);
 
 # Internal routines ============================================== {{{1
 
@@ -129,5 +133,18 @@ sub sel :prototype(@) {
 } #sel()
 
 # }}}1
+
+# Import ========================================================= {{{1
+sub import {
+    my $target = caller;
+    #say "XAL1 run from $target:\n", Devel::StackTrace->new->as_string;
+    XML::Axk::Language->import( target => $target, sp => \@SP_names );
+        # By doing this here rather than in the `use` statement,
+        # we get $target and don't have to walk the stack to find the
+        # axk script.
+    goto &Exporter::import;
+}
+
+#}}}1
 1;
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker: #
