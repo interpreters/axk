@@ -52,7 +52,9 @@ sub import {
     #my $lrRegistry = $SP_Registry{$lang};
 
     my %opts = ( $#_>0 && $#_ ? @_ : () );  # even number of args => options
-    my @sps;
+
+    my (@sps, $drUpdater);  # option values for sp, updater
+    my $core;   # _AxkCore in the target, if any
 
     # sp: populate the registry with the given variables.
     if(exists $opts{sp} && $opts{sp}) {
@@ -60,7 +62,12 @@ sub import {
         @sps = @{$opts{sp}};
     } #`sp` option
 
-    my $core;   # _AxkCore in the target, if any
+    # updater: the function that updates the SPs each record
+    if(exists $opts{updater} && $opts{updater}) {
+        croak "Need a code ref for the SPs" unless ref $opts{updater} eq 'CODE';
+            # TODO permit methods?
+        $drUpdater = $opts{updater};
+    } #`sp` option
 
     # target: mark the given axk_script (if any)
     if(exists $opts{target} && $opts{target}) {
@@ -89,6 +96,11 @@ sub import {
             }
         }
 
+        # Set the updater.
+        if($core && $drUpdater) {
+            $core->set_updater($lang, $drUpdater);
+        }
+
     } #`target` option
 
 } #import()
@@ -115,16 +127,25 @@ When implementing a language:
 
     require XML::Axk::Language;
     sub import {
-        XML::Axk::Language->import( target => caller, sp => [qw($foo @bar)] );
+        XML::Axk::Language->import( target => caller, sp => [qw($foo @bar)],
+            updater => sub { ... } );
     }
-
-The C<target> option is the package to load into, and the C<sp> option is
-the list of script parameters to load.
 
 If all you need is the registry:
 
     use XML::Axk::Language ();
     # Then do something with @XML::Axk::Language::SP_Registry.
+
+=head1 OPTIONS
+
+C<target>: the name of the package to load the script parameters (SPs) into
+
+C<sp>: the list of script parameters to load.
+
+C<updater>: a code ref to a function that will update the SPs based on the data
+of a record.  C<&updater> is called with a hashref of the SPs as the first
+parameter, and key/value pairs of the record data as the remaining parameters.
+C<&updater> should directly update the hashref, not replace it.
 
 =head1 LICENSE AND COPYRIGHT
 

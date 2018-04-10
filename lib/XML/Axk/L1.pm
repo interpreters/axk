@@ -28,10 +28,7 @@ our @EXPORT = qw(
     always never xpath sel);
 our @EXPORT_OK = qw( @SP_names );
 
-# Script-parameter names
-our @SP_names = qw($C @F $D $E);
-
-# Internal routines ============================================== {{{1
+# Helpers ======================================================== {{{1
 
 # Accessor
 sub _core {
@@ -133,11 +130,33 @@ sub sel :prototype(@) {
 
 # }}}1
 
+# Script parameters ============================================== {{{1
+
+# Script-parameter names
+our @SP_names = qw($C @F $D $E);
+
+sub update {
+    #say "L1::update: ", Dumper(\@_);
+    my $hrSP = shift or croak("No hrSP");
+    my %opts = @_;
+
+    $hrSP->{'$D'} = $opts{document} or croak("No document");
+    $hrSP->{'$E'} = $opts{record} or croak("No record");
+    #while (my ($key, $value) = each %new_sps) { }
+} #update()
+
+# }}}1
+
 # Import ========================================================= {{{1
 sub import {
+    #say "update: ",ref \&update, Dumper(\&update);
     my $target = caller;
     #say "XAL1 run from $target:\n", Devel::StackTrace->new->as_string;
-    XML::Axk::Language->import( target => $target, sp => \@SP_names );
+    XML::Axk::Language->import(
+        target => $target,
+        sp => \@SP_names,
+        updater => \&update
+    );
         # By doing this here rather than in the `use` statement,
         # we get $target and don't have to walk the stack to find the
         # axk script.

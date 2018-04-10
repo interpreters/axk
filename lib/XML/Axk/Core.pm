@@ -186,44 +186,12 @@ sub _run_worklist {
     my $self = shift;
     my $now = shift;        # $now = HI, BYE, or CIAO
 
-    my $sp = $self->{sp}->{"XML::Axk::L1"};     # FIXME
-    my %new_sps = (@_);
-
-    # TODO separate the internal variables for the doc and element from the
-    # SPs.  Move assignment of the SPs into Ln.pm.
+    my %new_data = (@_);
 
     # Assign the SPs ---------------
 
-    # Clear to default.  TODO move this out to the XALn packages.
-    $sp->{'$C'} = "";
-    @{$sp->{'@F'}} = ();
-    $sp->{'$D'} = undef;
-    $sp->{'$E'} = undef;
-
-    # Assign from params
-    while (my ($key, $value) = each %new_sps) {
-        unless(exists($sp->{$key})) {
-            carp "Can't assign nonexistent SP $key";
-            next;
-        }
-
-        if(ref $sp->{$key} eq 'ARRAY') {
-            unless(ref $value eq 'ARRAY') {
-                carp "Can't assign non-array to SP $key";
-                next;
-            }
-            @{$sp->{$key}} = @$value;
-
-        } elsif(ref $sp->{$key} eq 'HASH') {
-            unless(ref $value eq 'HASH') {
-                carp "Can't assign non-hash to SP $key";
-                next;
-            }
-            %{$sp->{$key}} = %$value;
-
-        } else {
-            $sp->{$key}=$value;
-        }
+    while (my ($lang, $drUpdater) = each %{$self->{updaters}}) {
+        $drUpdater->($self->{sp}->{$lang}, %new_data);
     }
 
     # Run the worklist -------------
@@ -324,22 +292,25 @@ sub new {
         options => $hrOpts,
 
         # Load these in the order they are defined in the scripts.
-        #our @pre_all = ();      # List of \& to run before reading the first file
-        #our @pre_file = ();     # List of \& to run before reading each file
-        #our @worklist = ();     # List of [$refCondition, \&action, $when]
-        #                        # to be run against each node.
-        #our @post_file = ();    # List of \& to run after reading each file
-        #our @post_all = ();     # List of \& to run after reading the last file
+        #our @pre_all = ();
+        #our @pre_file = ();
+        #our @worklist = ();
+        #
+        #our @post_file = ();
+        #our @post_all = ();
 
-        pre_all => [],
-        pre_file => [],
-        worklist => [],
-        post_file => [],
-        post_all => [],
+        pre_all => [],      # List of \& to run before reading the first file
+        pre_file => [],     # List of \& to run before reading each file
+        worklist => [],     # List of [$refCondition, \&action, $when] to be run against each node.
+        post_file => [],    # List of \& to run after reading each file
+        post_all => [],     # List of \& to run after reading the last file
 
         # Script parameters, indexed by language name (X::A::Ln).
         # Format: { lang name => { varname with sigil => value, ... }, ... }
         sp => {},
+
+        # Per-language updaters, indexed by language name
+        updaters => {},
 
     };
     my $self = bless($data, $class);
@@ -368,8 +339,15 @@ sub allocate_sps {
         $self->{sp}->{$lang}->{$name} = [], next if $sigil eq '@';
     }
 
-    say Dumper \%{$self->{sp}};
+    #say Dumper \%{$self->{sp}};
 } #allocate_sp()
+
+sub set_updater {
+    my $self = shift;
+    my $lang = shift;
+    return if exists $self->{updaters}->{$lang};
+    $self->{updaters}->{$lang} = shift // sub {};
+} #set_updater()
 
 # RO accessors
 sub id {
