@@ -19,7 +19,6 @@ lib/XML/Axk/SAX/BuildDOM2.pm
 lib/XML/Axk/SAX/Handler.pm
 lib/XML/Axk/SAX/Runner.pm
 lib/XML/Axk/Vars/Array.pm
-lib/XML/Axk/Vars/Inject.pm
 lib/XML/Axk/Vars/Scalar.pm
 Makefile.PL
 MANIFEST			This list of files

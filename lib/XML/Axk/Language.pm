@@ -4,6 +4,10 @@ package XML::Axk::Language;
 use XML::Axk::Base ':all';
 use Import::Into;
 use vars;
+
+use XML::Axk::Vars::Scalar;
+use XML::Axk::Vars::Array;
+
 #use Devel::StackTrace;
 
 # Registry mapping XALn package names to arrayrefs of the script parameters
@@ -25,6 +29,28 @@ our %SP_Registry = ();
 #    return undef;
 #} #find_axk_script_package()
 
+# Variable injection ============================================= {{{2
+
+sub inject_var {
+    my ($instance, $target, $varname) = @_;
+    my $basename = substr($varname, 1);
+    no strict 'refs';
+
+    if(substr($varname, 0, 1) eq '$') {         # scalar
+        tie(${"${target}::${basename}"}, 'XML::Axk::Vars::Scalar',
+            $instance, $basename);
+
+    } elsif(substr($varname, 0, 1) eq '@') {    # array
+        tie(@{"${target}::${basename}"}, 'XML::Axk::Vars::Array',
+            $instance, $basename);
+
+    } else {
+        croak "Can't inject unknown var type $varname";
+    }
+} #inject_var()
+
+# }}}2
+# Export ========================================================= {{{1
 sub import {
     my $lang = caller;
     my $class = shift;
@@ -47,30 +73,41 @@ sub import {
         push @{$lrRegistry}, @{$opts{sp}};
     } #`sp` option
 
+    my $core;   # _AxkCore in the target, if any
+
     # target: mark the given axk_script (if any)
     if(exists $opts{target} && $opts{target}) {
+
         my $script = $opts{target};
         my $varname = "${script}::_AxkLang";
+        my $corename = "${script}::_AxkCore";
+
         #say "Loading $varname with $lang";
         do {
             no strict 'refs';
-            croak "A script can only use one language" if defined ${$varname};
+            croak "A script can only use one language" if defined $$varname;
             vars->import::into($script, '$' . ($varname =~ s/^.*:://r));
-            ${$varname} = $lang;
+            $$varname = $lang;
+
+            $core = $$corename if defined $$corename;
         };
 
-        # Inject the variables
+        # Inject the script parameters
         if(@$lrRegistry) {
-            # TODO RESUME HERE
-            #vars->import::into($script, @$lrRegistry);
+            vars->import::into($script, @$lrRegistry);
+
+            if($core) {     # Link the SPs in $script to storage in $core
+                inject_var $core, $script, $_ for @$lrRegistry;
+            }
         }
 
     } #`target` option
 
 } #import()
 
+# }}}1
 1;
-# === Documentation ===================================================== {{{1
+# === Documentation ===================================================== {{{2
 
 =pod
 
@@ -143,5 +180,5 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-# }}}1
-# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #
+# }}}2
+# vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker foldlevel=1: #

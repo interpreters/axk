@@ -113,14 +113,12 @@ files.
         # Thanks to https://www.effectiveperlprogramming.com/2011/06/set-the-line-number-and-filename-of-string-evals/
 
     # Put the user's script in its own package
+    ++$scriptnumber;
     $leader = "package ". SCRIPT_PKG_PREFIX . "$scriptnumber {\n" .
         "use XML::Axk::Base;\n" .
-        "use XML::Axk::Vars::Inject;\n" .
-        'our $_AxkCore = $' . $self->global_name . ";\n" .
-        "XML::Axk::Vars::Inject->inject(\$_AxkCore);\n" .
+        'our $_AxkCore; BEGIN { $_AxkCore = $' . $self->global_name . "; }\n" .
         $leader;
     $trailer .= "\n;};\n";
-    ++$scriptnumber;
 
     $text = ($leader . $text . $trailer);
 
