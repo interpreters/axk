@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 # XML::Axk::Matcher::Selector - Selector matcher
 # Reminder: all matchers define test($refdata)->bool.
-# Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 package XML::Axk::Matcher::Selector;
 use XML::Axk::Base;

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 # Style note: Hungarian prefixes are used on scalars:
 #   "hr" (hash ref), "lr" (list ref), "sr" (string ref), "nr" (numeric ref),

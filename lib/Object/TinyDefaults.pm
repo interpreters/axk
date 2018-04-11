@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # Object::TinyDefaults - Object::Tiny::XS, but with default values.
-# Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 package Object::TinyDefaults;
 
@@ -98,13 +98,11 @@ Requires Object::Tiny or Object::Tiny::XS.  XS will be used if available.
 
 =head1 COPYRIGHT
 
-Copyright 2018 Chris White.
+Copyright (c) 2018 Christopher White.  All rights reserved.
 
-This program is free software; you can redistribute
-it and/or modify it under the same terms as Perl itself.
-
-The full text of the license can be found in the
-LICENSE file included with this module.
+This program is free software; you can redistribute it and/or modify it
+under the terms of the the Artistic License (2.0). Details are in the LICENSE
+file accompanying this distribution.
 
 =cut
 # vi: set ts=4 sts=4 sw=4 et ai: #

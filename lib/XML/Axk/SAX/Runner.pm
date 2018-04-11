@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # XML::Axk::SAX::Runner - Process an XML file using SAX.
-# Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 package XML::Axk::SAX::Runner;
 use XML::Axk::Base;

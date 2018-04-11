@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # XML::Axk::SAX::Handler - Process an XML file using SAX.
-# Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 # I am using SAX rather than XML::LibXML::Reader because I want full control
 # over the DOM document throughout the processing.
 

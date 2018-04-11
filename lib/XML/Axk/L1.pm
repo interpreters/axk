@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 # XML::Axk::L1 - axk language, version 1
-# Copyright (c) 2018 cxw42.  All rights reserved.  CC-BY-SA 3.0.
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 # TODO:
 # - Add a way to mark that a node should be kept in the DOM, even if running
