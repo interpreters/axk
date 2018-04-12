@@ -27,6 +27,7 @@ sub work {
     my ($self, $now) = @_;
     $self->{axkcore}->_run_worklist(
         $now,
+        # The new core parameters (CPs)
         document => $self->{Document},
         record => $self->{Element}
     );
@@ -92,7 +93,7 @@ sub comment {
 
 # }}}3
 1;
-# Documentation ========================================================= {{{3
 __END__
+# Documentation ========================================================= {{{3
 # }}}3
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker foldlevel=2 fo=cql: #

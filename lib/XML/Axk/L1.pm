@@ -81,6 +81,8 @@ sub perform :prototype(&@) {
 
     $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
 
+    # TODO? support Regexp, scalar patterns in some sensible way
+
     my $core = _core or croak("Can't find core in perform");
     push @{$core->{worklist}}, [$refPattern, $drAction, $when];
 } #perform()
@@ -104,12 +106,12 @@ sub never :prototype() {
 
 # Make an XPath matcher
 sub xpath :prototype(@) {
-    my $refExpr = shift or croak("No expression provided!");
-    $refExpr = \( my $temp = $refExpr ) unless ref($refExpr);
+    my $path = shift or croak("No expression provided!");
+    $path = $$path if ref $path;
 
     my (undef, $filename, $line) = caller;
     my $matcher = XML::Axk::Matcher::XPath->new(
-        xpath => $refExpr,
+        xpath => $path,
         file=>$filename, line=>$line,
     );
     return $matcher;
@@ -117,12 +119,13 @@ sub xpath :prototype(@) {
 
 # Make a selector matcher
 sub sel :prototype(@) {
-    my $refExpr = shift or croak("No expression provided!");
-    $refExpr = \( my $temp = $refExpr ) unless ref($refExpr);
-    my $xp = selector_to_xpath $$refExpr;
+    my $path = shift or croak("No expression provided!");
+    $path = $$path if ref $path;
+
+    my $xp = selector_to_xpath $path;
     my (undef, $filename, $line) = caller;
     my $matcher = XML::Axk::Matcher::XPath->new(
-        xpath => \$xp, type => 'selector',
+        xpath => $xp, type => 'selector',
         file=>$filename, line=>$line,
     );
     return $matcher;

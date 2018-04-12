@@ -130,37 +130,6 @@ files.
 # }}}1
 # Running =============================================================== {{{1
 
-# Check for matches based on SPs.
-sub isMatch {
-    #say "isMatch: ", Dumper(\@_);
-    my ($self, $refPattern) = @_;
-    my $sp = $self->{sp}->{"XML::Axk::L1"};     # Hardcoded for now - FIXME
-    my $ty = ref $refPattern;
-
-    if($ty eq 'Regexp') {
-        carp "Regexp not yet implemented";
-        return false;
-
-        #return false unless ref $sp->{E};
-        #return $sp->{E} =~ $refPattern;    ## Note: not meaningful at the moment
-
-    } elsif($ty eq 'SCALAR') {      # matches if the line contains the scalar
-        carp "Scalar match not yet implemented";
-        return false;
-
-        #return false unless ref $sp->{E};
-        #return index($$refLine, $$refPattern) != -1;
-
-    } else {
-        if(my $test = $refPattern->can("test")) {;
-            return $refPattern->$test($sp);
-        } else {
-            carp "Pattern $refPattern doesn't implement test()";
-            return false;
-        }
-    }
-} #isMatch()
-
 sub _run_pre_file {
     my ($self, $infn) = @_ or croak("Need a filename");
 
@@ -186,12 +155,12 @@ sub _run_worklist {
     my $self = shift;
     my $now = shift;        # $now = HI, BYE, or CIAO
 
-    my %new_data = (@_);
+    my %CPs = (@_);         # Core parameters
 
-    # Assign the SPs ---------------
+    # Assign the SPs from the CPs --
 
     while (my ($lang, $drUpdater) = each %{$self->{updaters}}) {
-        $drUpdater->($self->{sp}->{$lang}, %new_data);
+        $drUpdater->($self->{sp}->{$lang}, %CPs);
     }
 
     # Run the worklist -------------
@@ -203,7 +172,8 @@ sub _run_worklist {
 
         next if $when && ($now != $when);
 
-        next unless $self->isMatch($refPattern);
+        next unless $refPattern->test(\%CPs);
+            # Matchers use CPs so they are independent of language.
 
         eval { &$refAction };   # which context are they evaluated in?
         croak "action: $@" if $@;

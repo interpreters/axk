@@ -93,8 +93,10 @@ Object::TinyDefaults - Object::Tiny[::XS] wrapper that adds default values
     package main;
     my $inst = MyClass->new(bar=>1);
 
-Now MyClass has accessors foo(), bar(), and bat(), and values foo=42 and bar=1.
-Requires Object::Tiny or Object::Tiny::XS.  XS will be used if available.
+Now MyClass has accessors C<foo()>, C<bar()>, and C<bat()>, and values
+C<foo=42> and C<bar=1>.
+
+Requires L<Object::Tiny> or L<Object::Tiny::XS>.  XS will be used if available.
 
 =head1 COPYRIGHT
 
