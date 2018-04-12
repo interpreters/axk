@@ -1,15 +1,14 @@
 #!/usr/bin/env perl
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
-# XML::Axk: Stub package that chains to XML::Axk::Core.
+# XML::Axk: Stub package that loads XML::Axk::Core and XML::Axk::Core.
 
 package XML::Axk;
-use XML::Axk::Base;
-use XML::Axk::Core;
-use XML::Axk::App;
+use XML::Axk::Base;     # uses 5.018, so we can safely use v-strings.
+use XML::Axk::Core v0.1.0;
+use XML::Axk::App v0.1.0;
 use Import::Into;
 
-our $VERSION;
-$VERSION = '0.01';
+use version 0.77; our $VERSION = version->declare("v0.1.1");
 
 sub import {
     XML::Axk::Core->import::into(1);
@@ -30,7 +29,8 @@ XML::Axk - ack-like XML processor
 
 =head1 VERSION
 
-Version 0.01
+Axk version 0.1.1, which includes Core 0.1.0 and App 0.1.0 (or higher).
+Numbers follow L<Semantic versioning|https://semver.org>.
 
 =head1 USAGE
 
@@ -42,7 +42,9 @@ Version 0.01
     # Perl interface
     my $axk = XML::Axk::Core->new();
 
-For details about the command-line interface, see C<perldoc XML::Axk::App>.
+For details about the command-line interface, see L<XML::Axk::App>.
+
+For details about the library interface, see L<XML::Axk::Core>.
 
 =head1 OPTIONS
 
@@ -51,26 +53,17 @@ None yet!
 A filename of C<-> represents standard input.  To actually process a file
 named C<->, you will need to use shell redirection (e.g., C<< axk < - >>).
 
-=head1 EXPORT
-
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 SUBROUTINES/METHODS
-
-=head2 function1
-
-=head2 function2
-
 =head1 AUTHOR
 
-Christopher White, C<< <cxwembedded at gmail.com> >>
+Christopher White, C<cxwembedded at gmail.com>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-xml-axk at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Axk>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to C<bug-xml-axk at rt.cpan.org>, or
+through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Axk>.  I will be notified,
+and then you'll automatically be notified of progress on your bug as I make
+changes.
 
 =head1 SUPPORT
 

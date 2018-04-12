@@ -13,11 +13,11 @@ WriteMakefile(
     VERSION_FROM    => 'lib/XML/Axk.pm',
     ABSTRACT_FROM   => 'lib/XML/Axk.pm',
     LICENSE         => 'artistic_2',
-    PL_FILES        => {},
     EXE_FILES       => [ 'bin/axk' ],
     MIN_PERL_VERSION => '5.018',
     CONFIGURE_REQUIRES => {
         'ExtUtils::MakeMaker' => '0',
+        'version' => '0.77',
     },
     BUILD_REQUIRES => {
         'Test::More' => '0',
@@ -43,5 +43,6 @@ WriteMakefile(
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'XML-Axk-*' },
+    depend => { Makefile => '$(VERSION_FROM)' },
 );
 # vi: set ts=4 sts=4 sw=4 et ai: #

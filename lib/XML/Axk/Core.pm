@@ -10,9 +10,7 @@ package XML::Axk::Core;
 use XML::Axk::Base qw(:all);
 use XML::Axk::Language ();
 
-# TODO
-# - create the core vars
-# - move assignment of the SPs based on the core vars out to the XALn packages.
+use version 0.77; our $VERSION = version->declare("v0.1.0");
 
 # Private vars ========================================================== {{{1
 
@@ -333,4 +331,98 @@ sub global_name {
 # No import() --- callers should refer to the symbols with their
 # fully- qualified names.
 1;
+# === Documentation ===================================================== {{{1
+
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+XML::Axk::Core - ack-like XML processor, core
+
+=head1 VERSION
+
+Version 0.1.0
+
+=head1 USAGE
+
+    my $core = XML::Axk::Core->new(\%opts);
+    $core->load_script_file($filename);
+    $core->load_script_text($source_text, $filename);
+    $core->run(@input_filenames);
+
+=head1 OPTIONS
+
+A filename of C<-> represents standard input.
+
+=head1 SUBROUTINES
+
+=head2 XML::Axk::Core->new
+
+Constructor.  Takes a hash ref of options
+
+=head1 METHODS
+
+=head2 load_script_file
+
+=head2 load_script_text
+
+=head2 run
+
+=head1 AUTHOR
+
+Christopher White, C<cxwembedded at gmail.com>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to C<bug-xml-axk at rt.cpan.org>, or
+through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Axk>.  I will be notified,
+and then you'll automatically be notified of progress on your bug as I make
+changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc XML::Axk::Core
+
+You can also look for information at:
+
+=over 4
+
+=item * GitHub: The project's main repository and issue tracker
+
+L<https://github.com/cxw42/axk>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=XML-Axk>
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/XML-Axk>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/XML-Axk>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/XML-Axk/>
+
+=back
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2018 Christopher White.  All rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of the the Artistic License (2.0). Details are in the LICENSE
+file accompanying this distribution.
+
+=cut
+
+# }}}1
 # vi: set ts=4 sts=4 sw=4 et ai fo=cql foldmethod=marker foldlevel=0: #

@@ -4,7 +4,7 @@ use XML::Axk::Core;
 
 #BEGIN { require Exporter; $Exporter::Verbose=1; }
 
-our $VERSION = '0.01';
+use version 0.77; our $VERSION = version->declare("v0.1.0");
 
 use Getopt::Long qw(GetOptionsFromArray :config gnu_getopt);
 
@@ -175,7 +175,7 @@ XML::Axk::App - ack-like XML processor, command-line interface
 
 =head1 VERSION
 
-Version 0.01
+Version 0.1.0
 
 =head1 USAGE
 
