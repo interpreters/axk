@@ -14,33 +14,10 @@ use XML::Axk::Vars::Array;
 # (SPs) for those packages.
 #our %SP_Registry = ();
 
-# Variable injection ============================================= {{{2
-
-# Regular function (not a class or instance method).
-# Sets up the tie between an SP in the script and its storage in the core.
-sub _inject_var {
-    my ($core, $target, $lang, $varname) = @_;
-    my $basename = substr($varname, 1);
-    no strict 'refs';
-
-    if(substr($varname, 0, 1) eq '$') {         # scalar
-        tie(${"${target}::${basename}"}, 'XML::Axk::Vars::Scalar',
-            $core, $lang, $varname);
-
-    } elsif(substr($varname, 0, 1) eq '@') {    # array
-        tie(@{"${target}::${basename}"}, 'XML::Axk::Vars::Array',
-            $core, $lang, $varname);
-
-    } else {
-        croak "Can't inject unknown var type $varname";
-    }
-} #_inject_var()
-
-# }}}2
 # Export ========================================================= {{{1
 sub import {
-    my $lang = caller;
     my $class = shift;
+    my $lang = caller;
     if($class ne __PACKAGE__) {     # do I need this?
         confess(__PACKAGE__ . " initializer called from class $class");
     }
@@ -54,7 +31,7 @@ sub import {
     my %opts = ( $#_>0 && $#_ ? @_ : () );  # even number of args => options
 
     my (@sps, $drUpdater);  # option values for sp, updater
-    my $core;   # _AxkCore in the target, if any
+    my $sandbox;    # _AxkSandbox in the target, if any
 
     # sp: populate the registry with the given variables.
     if(exists $opts{sp} && $opts{sp}) {
@@ -72,33 +49,30 @@ sub import {
     # target: mark the given axk_script (if any)
     if(exists $opts{target} && $opts{target}) {
 
-        my $script = $opts{target};
-        my $varname = "${script}::_AxkLang";
-        my $corename = "${script}::_AxkCore";
+        my $target = $opts{target};
+        my $sandboxname = "${target}::_AxkSandbox";
 
         #say "Loading $varname with $lang";
         do {
             no strict 'refs';
-            croak "A script can only use one language" if defined $$varname;
-            vars->import::into($script, '$' . ($varname =~ s/^.*:://r));
-            $$varname = $lang;
+            #croak "A script can only use one language" if defined $$varname;
 
-            $core = $$corename if defined $$corename;
+            $sandbox = $$sandboxname if defined $$sandboxname;
         };
 
         # Inject the script parameters
         if(@sps) {
-            vars->import::into($script, @sps);
+            vars->import::into($target, @sps);  # Create the SP vars...
 
-            if($core) {     # Link the SPs in $script to storage in $core
-                $core->allocate_sps($lang, @sps);
-                _inject_var($core, $script, $lang, $_) for @sps;
+            if($sandbox) {     # ... then link them to storage in the core.
+                $sandbox->allocate_sps($lang, @sps);
+                $sandbox->inject_var($lang, $_) for @sps;
             }
         }
 
         # Set the updater.
-        if($core && $drUpdater) {
-            $core->set_updater($lang, $drUpdater);
+        if($sandbox && $drUpdater) {
+            $sandbox->set_updater($lang, $drUpdater);
         }
 
     } #`target` option

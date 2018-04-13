@@ -12,16 +12,21 @@ use parent -norequire => 'Tie::StdScalar';
 
 # Create a scalar tied to a script-accessible var in an XAC instance
 # @param $class
-# @param $instance  XML::Axk::Core instance
+# @param $core      XML::Axk::Core instance
 # @param $varname   Name of the new variable
 sub TIESCALAR {
     my $class = shift;
-    my $instance = shift or croak('No instance');
-    my $lang = shift or croak('No language name');
-    my $varname = shift or croak("No varname");     # the var to create
+    croak("Internal use only --- see XML::Axk::Sandbox")
+        unless scalar caller eq 'XML::Axk::Sandbox';
 
-    #say "Tying scalar \$$varname to $instance";
-    return bless \($instance->{sp}->{$lang}->{$varname}), $class;
+    my ($sandbox, $lang, $varname) = @_;
+    croak 'No sandbox' unless ref $sandbox eq 'XML::Axk::Sandbox';
+    croak 'No language name' unless $lang;
+    croak 'No varname' unless $varname;
+
+    #say "Tying scalar \$$varname to $core";
+    my $hrSP = $sandbox->sps($lang);
+    return bless \($hrSP->{$varname}), $class;
 } #TIESCALAR()
 
 # }}}1

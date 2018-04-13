@@ -1,7 +1,5 @@
 L1
 
-say "Language: $_AxkLang";
-
 perform { say "** This shouldn't have happened" } never;
 
 perform { say "hi  ", $E->getTagName if $E->can("getTagName"); } always, HI;
@@ -29,5 +27,7 @@ perform {
 perform {
     say "Hi, selector-matched subitem!";
 } sel("subitem"), HI;
+
+say "All loaded and ready!";
 
 # vi: set ts=4 sts=4 sw=4 et ai ft=perl: #

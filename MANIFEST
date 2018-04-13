@@ -14,6 +14,7 @@ lib/XML/Axk/DOM.pm
 lib/XML/Axk/L1.pm
 lib/XML/Axk/Matcher/Always.pm
 lib/XML/Axk/Matcher/XPath.pm
+lib/XML/Axk/Sandbox.pm
 lib/XML/Axk/SAX/BuildDOM2.pm
 lib/XML/Axk/SAX/Handler.pm
 lib/XML/Axk/SAX/Runner.pm

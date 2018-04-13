@@ -8,7 +8,16 @@
 
 package XML::Axk::Core;
 use XML::Axk::Base qw(:all);
+
+# Wrapper around string eval, way up here so it can't see any of the
+# lexicals below.
+sub eval_nolex {
+    eval shift;
+    return $@;
+} #eval_nolex
+
 use XML::Axk::Language ();
+use XML::Axk::Sandbox;
 
 use version 0.77; our $VERSION = version->declare("v0.1.0");
 
@@ -60,7 +69,7 @@ sub load_script_text {
 
 =head1 SPECIFYING THE AXK LANGUAGE VERSION
 
-An axk script can include a C<Ln> pragma that specifies the axL1
+An axk script can include a C<Ln> pragma that specifies the axk
 language version in use.  For example, C<L1> (or, C<L 1>, C<L01>,
 C<L001>, ...) calls for language version 1 (currently defined in
 C<XML::Axk::L1>).  The C<Ln> must be the first non-whitespace item
@@ -105,11 +114,18 @@ files.
         # Extra ; so the #line directive is in its own statement.
         # Thanks to https://www.effectiveperlprogramming.com/2011/06/set-the-line-number-and-filename-of-string-evals/
 
-    # Put the user's script in its own package
+    # Put the user's script in its own package, with its own sandbox
     ++$scriptnumber;
-    $leader = "package ". SCRIPT_PKG_PREFIX . "$scriptnumber {\n" .
+    my $scriptname = SCRIPT_PKG_PREFIX . $scriptnumber;
+    my $sandbox = XML::Axk::Sandbox->new($self, $scriptname);
+
+    { # preload the sandbox into the script's package
+        no strict 'refs';
+        ${"${scriptname}::_AxkSandbox"} = $sandbox;
+    }
+
+    $leader = "package $scriptname {\n" .
         "use XML::Axk::Base;\n" .
-        'our $_AxkCore; BEGIN { $_AxkCore = $' . $self->global_name . "; }\n" .
         $leader;
     $trailer .= "\n;};\n";
 
@@ -120,9 +136,8 @@ files.
         say "****************Loading $fn:\n$text\n****************";
     }
 
-    eval $text;
-    croak "Could not parse '$fn': $@" if $@;
-    #say "Done";
+    my $at = eval_nolex $text;
+    croak "Could not parse '$fn': $at" if $at;
 } #load_script_text
 
 # }}}1
@@ -224,7 +239,6 @@ sub run {
                 # http://www.perlmonks.org/?node_id=745018
         }
 
-        #$self->run_text_fh($fh, $infn);
         $self->run_sax_fh($fh, $infn);
 
         close($fh) or warn "close failed: $!";

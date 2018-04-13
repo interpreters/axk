@@ -6,8 +6,6 @@
 # - Add a way to mark that a node should be kept in the DOM, even if running
 #   in SAX mode (`stash`?)
 # - Add a way to re-use the last pattern (`ditto`?)
-# - Instead of using $_AxkCore, use a static map in XAC that goes from
-#   the caller's package name to the corresponding core.
 # - Add a static method to XAC to get the next package name, so that each
 #   `axk_script_*` is used by only one Core instance.
 
@@ -31,38 +29,36 @@ our @EXPORT_OK = qw( @SP_names );
 # Helpers ======================================================== {{{1
 
 # Accessor
-sub _core {
+sub _sandbox {
     my $home = caller(1);
-    #say "_core from $home";
     no strict 'refs';
-    my $core = ${"${home}::_AxkCore"};
-    return $core;
-} #_core()
+    return ${"${home}::_AxkSandbox"};
+} #_sandbox()
 
 # }}}1
 # Definers for special actions==================================== {{{1
 
 sub pre_all :prototype(&) {
-    my $core = _core or croak("Can't find core in pre_all");
-    #say "core: " . Dumper($core);
-    #say Dumper($core->{pre_all});
-    #say Dumper(@{$core->{pre_all}});
-    push @{$core->{pre_all}}, shift;
+    my $sandbox = _sandbox or croak("Can't find sandbox in pre_all");
+    #say "core: " . Dumper($sandbox);
+    #say Dumper($sandbox->{pre_all});
+    #say Dumper(@{$sandbox->{pre_all}});
+    push @{$sandbox->pre_all}, shift;
 } #pre_all()
 
 sub pre_file :prototype(&) {
-    my $core = _core or croak("Can't find core in pre_file");
-    push @{$core->{pre_file}}, shift;
+    my $sandbox = _sandbox or croak("Can't find sandbox in pre_file");
+    push @{$sandbox->pre_file}, shift;
 } #pre_file()
 
 sub post_file :prototype(&) {
-    my $core = _core or croak("Can't find core in post_file");
-    push @{$core->{post_file}}, shift;
+    my $sandbox = _sandbox or croak("Can't find sandbox in post_file");
+    push @{$sandbox->post_file}, shift;
 } #post_file()
 
 sub post_all :prototype(&) {
-    my $core = _core or croak("Can't find core in post_all");
-    push @{$core->{post_all}}, shift;
+    my $sandbox = _sandbox or croak("Can't find sandbox in post_all");
+    push @{$sandbox->post_all}, shift;
 } #post_all()
 
 # }}}1
@@ -83,8 +79,8 @@ sub perform :prototype(&@) {
 
     # TODO? support Regexp, scalar patterns in some sensible way
 
-    my $core = _core or croak("Can't find core in perform");
-    push @{$core->{worklist}}, [$refPattern, $drAction, $when];
+    my $sandbox = _sandbox or croak("Can't find sandbox in perform");
+    push @{$sandbox->worklist}, [$refPattern, $drAction, $when];
 } #perform()
 
 # }}}1
@@ -151,6 +147,7 @@ sub update {
 # }}}1
 
 # Import ========================================================= {{{1
+
 sub import {
     #say "update: ",ref \&update, Dumper(\&update);
     my $target = caller;
