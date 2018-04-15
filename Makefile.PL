@@ -20,11 +20,13 @@ WriteMakefile(
         'version' => '0.77',
     },
     BUILD_REQUIRES => {
-        'Test::More' => '0',
+        'Test::More' => '0.92',
+        'Capture::Tiny' => '0',
+        'Module::Loaded' => '0',
     },
     PREREQ_PM => {
         'Data::Dumper' => '0',
-        'Getopt::Long' => '0',
+        'Getopt::Long' => '2.50',
         'Pod::Usage' => '0',
         'Pod::Find' => '0',
         'Carp' => '0',
