@@ -31,7 +31,7 @@ Build.bat
 # Module::Install
 inc/
 
-# ExtUitls::MakeMaker
+# ExtUtils::MakeMaker
 /blib/
 /_eumm/
 /*.gz
@@ -40,3 +40,6 @@ inc/
 /MANIFEST.bak
 /pm_to_blib
 /*.zip
+
+# Capture::Tiny
+DEBUG

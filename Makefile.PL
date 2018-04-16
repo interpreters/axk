@@ -23,6 +23,7 @@ WriteMakefile(
         'Test::More' => '0.92',
         'Capture::Tiny' => '0',
         'Module::Loaded' => '0',
+        'File::Spec' => '0',
     },
     PREREQ_PM => {
         'Data::Dumper' => '0',

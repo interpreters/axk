@@ -19,13 +19,13 @@ use constant EXIT_PARAM_ERR	=> 2;	# couldn't understand the command line
 
 # === Command line parsing ============================================== {{{1
 
-# files/scripts to load, in order.
-# Each element is [isfile, text].
-my @Sources;
+# files/scripts to load, in order.  Each element is [isfile, text].
+# Package var so we can localize it.
+our @_Sources;
 
 my $dr_save_source = sub {
     my ($which, $text) = @_;
-    push @Sources, [$which eq 'f', $text];
+    push @_Sources, [$which eq 'f', $text];
 }; # dr_save_source
 
 my %CMDLINE_OPTS = (
@@ -51,6 +51,7 @@ my %CMDLINE_OPTS = (
     # --man reserved
     # OUTPUT_FILENAME => ['o','|output=s', ""], # conflict with gawk
     #SANDBOX => ['S','|sandbox',false],
+    #SOURCES reserved
     # --usage reserved
     PRINT_VERSION => ['V','|version', false],
     DEFS => ['v','|var:s%'],
@@ -68,8 +69,7 @@ sub parse_command_line {
     # values from the command line, keyed by the keys in %CMDLINE_OPTS.
 
     my %params = @_;
-    #croak "Missing arg from" unless $params{from};
-    #croak "Missing arg into" unless $params{into};
+    local @_Sources;
 
     my $hrOptsOut = $params{into};
 
@@ -117,6 +117,8 @@ sub parse_command_line {
     # Process other arguments.  TODO? support multiple input filenames?
     #$hrOptsOut->{INPUT_FILENAME} = $ARGV[0] // "";
 
+    $hrOptsOut->{SOURCES} = \@_Sources;     # our local copy
+
 } #parse_command_line()
 
 # }}}1
@@ -124,15 +126,15 @@ sub parse_command_line {
 
 # Command-line runner.  Call as XML::Axk::App::Main(\@ARGV).
 sub Main {
-    my $lrArgs = shift;
+    my $lrArgs = shift or croak "No arguments - need at least a script";
 
     my %opts;
     parse_command_line(from => $lrArgs, into => \%opts);
 
     # Treat the first non-option arg as a script if appropriate
-    unless(@Sources) {
+    unless(@{$opts{SOURCES}}) {
         croak "No scripts to run" unless @$lrArgs;
-        push @Sources, [false, shift @$lrArgs];
+        push @{$opts{SOURCES}}, [false, shift @$lrArgs];
     }
 
     my $core = XML::Axk::Core->new(\%opts);
@@ -140,7 +142,7 @@ sub Main {
         # they stick around as long as $core does.
 
     my $cmd_line_idx = 0;   # Number the `-e`s on the command line
-    foreach my $lrSource (@Sources) {
+    foreach my $lrSource (@{$opts{SOURCES}}) {
         my ($is_file, $text) = @$lrSource;
         if($is_file) {
             $core->load_script_file($text);
