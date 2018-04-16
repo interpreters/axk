@@ -136,6 +136,7 @@ files.
         say "****************Loading $fn:\n$text\n****************";
     }
 
+    # TODO? un-taint the source text so we can run under -T
     my $at = eval_nolex $text;
     croak "Could not parse '$fn': $at" if $at;
 } #load_script_text

@@ -57,6 +57,8 @@ my %CMDLINE_OPTS = (
     # -? reserved
 
     # Long-only options that are specific to axk.
+    NO_INPUT => ['no-input'],   # When set, don't read any files.  This is so
+                                # testing with empty inputs is easier.
     SHOW => ['show',':s@'],     # which debugging output to print.
                                 # TODO make it a hash instead?
 );
@@ -87,7 +89,7 @@ sub parse_command_line {
         $params{from},                  # source array
         $hrOptsOut,                     # destination hash
         'usage|?', 'h|help', 'man',     # options we handle here
-        map { $_->[0] . $_->[1] } values %CMDLINE_OPTS,     # options strs
+        map { $_->[0] . ($_->[1] // '') } values %CMDLINE_OPTS, # options strs
         );
 
     # Help, if requested
@@ -150,7 +152,7 @@ sub Main {
     } #foreach source
 
     # read from stdin if no input files specified.
-    push @$lrArgs, '-' unless @$lrArgs;
+    push @$lrArgs, '-' unless @$lrArgs || $opts{NO_INPUT};
 
     $core->run(@$lrArgs);
 
