@@ -100,7 +100,7 @@ files.
         if($add_Ln) {
             $leader = "use XML::Axk::L1;\n";    # To be updated over time
         } else {
-            croak "No version (Ln) specified in file $fn";
+            croak "No language (Ln) specified in file $fn";
         }
     }
 

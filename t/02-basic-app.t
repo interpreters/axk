@@ -1,7 +1,5 @@
 #!perl
 
-package main;
-
 use 5.018;
 use strict;
 use warnings;
@@ -21,7 +19,7 @@ sub localpath {
 }
 
 # Inline script =================================================== {{{1
-package main {
+{
     my $out = capture_stdout
                 { XML::Axk::App::Main(['-e','print 42', '--no-input']) };
     is($out, '42', 'inline script runs');
@@ -29,11 +27,20 @@ package main {
 
 # }}}1
 # Script on disk ================================================== {{{1
-package main {
+{
     my $out =
         capture_stdout
             { XML::Axk::App::Main([ '-f', localpath('02.axk'), '--no-input']) };
     is($out, '1337', 'on-disk script runs');
+}
+
+# }}}1
+# Script with no language indicator =============================== {{{1
+{
+    eval { XML::Axk::App::Main([ '-f', localpath('02-noL.axk'),
+                                    '--no-input']) };
+    my $err = $@;
+    like($err, qr/No language \(Ln\) specified/, 'detects missing Ln');
 }
 
 # }}}1
