@@ -23,7 +23,7 @@ sub import {
     );
     my $class = shift;
     my ($fn, $lineno, $source_text) = @_;
-    say "Got source text at $fn:$lineno:\n-----------------\n$source_text\n-----------------";
+    say "Got source text len ", length($source_text), " at $fn:$lineno:\n-----------------\n$source_text\n-----------------";
 } #import()
 
 #}}}1

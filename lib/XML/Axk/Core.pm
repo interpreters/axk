@@ -126,10 +126,10 @@ files.
         my $length_delta = 0;   # how much to adjust pos($text) by
         #say "Old pos: ", $oldpos;
 
-        # Get line number in the original file
-        my $orig_lineno = 1 + ( () = substr($text, 0, $idxes[0]) =~ /\n/g );
+        # Get line number in the present, possibly modified, text
+        my $curr_lineno = 1 + ( () = substr($text, 0, $idxes[0]) =~ /\n/g );
             # Thanks to ikegami, http://www.perlmonks.org/?node_id=968352
-        $orig_lineno -= $lines_added;
+        $curr_lineno -= $lines_added;
 
         # Ln must be followed by whitespace and a newline.
         # This is to keep the line numbering vaguely consistent.
@@ -137,7 +137,7 @@ files.
 
         unless($removed) {
             # Tell the caller where in the source file the problem is
-            eval "#line $orig_lineno \"$fn\"\n" .
+            eval "#line $curr_lineno \"$fn\"\n" .
                     "die(\"L$lang indicator must be on its own line\");";
             die $@;
         }
@@ -149,10 +149,10 @@ files.
 
         # End an existing capture if we're switching languages
         if($curr_trailer) {
-            $replacement .= "\n$curr_trailer\n" .
-                            "#line $orig_lineno \"$fn\"\n";
+            $replacement .= "$curr_trailer\n" .
+                            "#line $curr_lineno \"$fn\"\n";
             $curr_trailer='';
-            ++$lines_added;
+            $lines_added += 2;
         }
 
         # Does this language parse the source text itself?
@@ -171,7 +171,7 @@ files.
             $curr_trailer =
                 "AXK_EMBEDDED_SOURCE_DO_NOT_TYPE_THIS_YOURSELF_OR_ELSE";
 
-            my $following_lineno = $orig_lineno+1;
+            my $following_lineno = $curr_lineno+1;
                 # Number of first line of the text in that language
             $replacement .=
                 "use XML::Axk::L$lang \"$fn\", $following_lineno, " .
