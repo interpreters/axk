@@ -42,4 +42,4 @@ inc/
 /*.zip
 
 # Capture::Tiny
-DEBUG
+DEBUG*

@@ -52,7 +52,7 @@ sub load_script_file {
 
 # Load the given text, but do not execute it.
 # @param $self
-# @param $text {String} The source text
+# @param $text {String} The source text, **which load_script_text may modify.**
 # @param $fn {String}   Filename to use in debugging messages
 # @param $add_Ln {boolean, default false} If true, add a Ln directive for the
 #           current version if there isn't one in the script.
@@ -64,6 +64,14 @@ sub load_script_text {
 
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
+
+    $text .= "\n";  # for consistency, e.g., so `axk -e 'L0'` won't crash.
+
+    # Prep the filename
+    #$fn =~ s{\\}{\\\\}g;   # This doesn't seem to be necessary based on
+                            # the regex given for #line in perlsyn.
+    $fn =~ s{"}{-}g;
+        # as far as I can tell, #line can't handle embedded quotes.
 
 =pod
 
@@ -96,7 +104,94 @@ files.
 
 =cut
 
-    unless($text =~ s{^\h*L\h*0*(\d+)\h*;?}{use XML::Axk::L$1;}mg) {
+    my $has_lang;
+    my $curr_trailer;
+    my $lines_added = 0;
+
+    # Regex to match an Ln specification
+    my $RE_Ln = qr{
+        ^\h*L\h*    # has to start the line
+        (?|
+                (?:0*(\d+))     # digit form
+            |   (?:``(\w\+))    # alpha form, e.g., L``foo.  I think ``
+        )                       # is fairly unlikely in real text.
+        \b\h*;?     # permit trailers for ergonomics
+    }mx;
+
+    while( $text =~ m/$RE_Ln/g ) {
+        my @idxes=($-[0], $+[0]);
+        my $lang = $1;
+        #say "Match $lang in =$text= at ", join ',',@idxes;
+        my $oldpos = pos($text);
+        my $length_delta = 0;   # how much to adjust pos($text) by
+        #say "Old pos: ", $oldpos;
+
+        # Get line number in the original file
+        my $orig_lineno = 1 + ( () = substr($text, 0, $idxes[0]) =~ /\n/g );
+            # Thanks to ikegami, http://www.perlmonks.org/?node_id=968352
+        $orig_lineno -= $lines_added;
+
+        # Ln must be followed by whitespace and a newline.
+        # This is to keep the line numbering vaguely consistent.
+        my ($removed) = (substr($text, $idxes[1]) =~ s/\A(\h*\n)//);
+
+        unless($removed) {
+            # Tell the caller where in the source file the problem is
+            eval "#line $orig_lineno \"$fn\"\n" .
+                    "die(\"L$lang indicator must be on its own line\");";
+            die $@;
+        }
+
+        $length_delta -= length($removed);
+
+        my $replacement = '';
+        $has_lang = 1;
+
+        # End an existing capture if we're switching languages
+        if($curr_trailer) {
+            $replacement .= "\n$curr_trailer\n" .
+                            "#line $orig_lineno \"$fn\"\n";
+            $curr_trailer='';
+            ++$lines_added;
+        }
+
+        # Does this language parse the source text itself?
+        my $want_text;
+        eval "require XML::Axk::L$lang";
+        die "Can't find language $lang: $@" if $@;
+        do {
+            no strict 'refs';
+            $want_text = ${"XML::Axk::L${lang}::C_WANT_TEXT"};
+        };
+
+        unless($want_text) {    # Easy case: the script's code is still Perl
+            $replacement .= "use XML::Axk::L$lang;\n";
+
+        } else {                # Harder case: give the Ln the source text
+            $curr_trailer =
+                "AXK_EMBEDDED_SOURCE_DO_NOT_TYPE_THIS_YOURSELF_OR_ELSE";
+
+            my $following_lineno = $orig_lineno+1;
+                # Number of first line of the text in that language
+            $replacement .=
+                "use XML::Axk::L$lang \"$fn\", $following_lineno, " .
+                "<<'$curr_trailer';\n";
+        }
+
+        if($replacement) {
+            substr($text, $idxes[0], $idxes[1] - $idxes[0]) = $replacement;
+            $length_delta += (length($replacement) - ($idxes[1] - $idxes[0]));
+        }
+
+        if($length_delta) {
+            #say "pos = $oldpos; Delta pos = $length_delta";
+            pos($text) = $oldpos + $length_delta;
+        }
+    } #foreach lang
+
+    $text .= "\n$curr_trailer\n" if $curr_trailer;
+
+    unless($has_lang) {
         if($add_Ln) {
             $leader = "use XML::Axk::L1;\n";    # To be updated over time
         } else {
@@ -104,12 +199,8 @@ files.
         }
     }
 
-    # Mark the filename for the sake of error messages.
-    #$fn =~ s{\\}{\\\\}g;   # This doesn't seem to be necessary based on
-                            # the regex given for #line in perlsyn.
-    $fn =~ s{"}{-}g;
-        # as far as I can tell, #line can't handle embedded quotes.
 
+    # Mark the filename for the sake of error messages.
     $leader .= ";\n#line 1 \"$fn\"\n";
         # Extra ; so the #line directive is in its own statement.
         # Thanks to https://www.effectiveperlprogramming.com/2011/06/set-the-line-number-and-filename-of-string-evals/
