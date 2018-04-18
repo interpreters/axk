@@ -17,13 +17,13 @@ require XML::Axk::Language;
 sub import {
     #say "update: ",ref \&update, Dumper(\&update);
     my $target = caller;
-    say "XAL0 run from $target:\n", Dumper(\@_);
+    #say "XAL0 run from $target:\n", Dumper(\@_);
     XML::Axk::Language->import(
         target => $target
     );
     my $class = shift;
     my ($fn, $lineno, $source_text) = @_;
-    say "Got source text len ", length($source_text), " at $fn:$lineno:\n-----------------\n$source_text\n-----------------";
+    #say "Got source text len ", length($source_text), " at $fn:$lineno:\n-----------------\n$source_text\n-----------------";
 } #import()
 
 #}}}1

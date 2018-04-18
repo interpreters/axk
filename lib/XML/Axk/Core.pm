@@ -65,8 +65,6 @@ sub load_script_text {
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
 
-    $text .= "\n";  # for consistency, e.g., so `axk -e 'L0'` won't crash.
-
     # Prep the filename
     #$fn =~ s{\\}{\\\\}g;   # This doesn't seem to be necessary based on
                             # the regex given for #line in perlsyn.
@@ -121,10 +119,8 @@ files.
     while( $text =~ m/$RE_Ln/g ) {
         my @idxes=($-[0], $+[0]);
         my $lang = $1;
-        #say "Match $lang in =$text= at ", join ',',@idxes;
         my $oldpos = pos($text);
         my $length_delta = 0;   # how much to adjust pos($text) by
-        #say "Old pos: ", $oldpos;
 
         # Get line number in the present, possibly modified, text
         my $curr_lineno = 1 + ( () = substr($text, 0, $idxes[0]) =~ /\n/g );
@@ -133,9 +129,12 @@ files.
 
         # Ln must be followed by whitespace and a newline.
         # This is to keep the line numbering vaguely consistent.
-        my ($removed) = (substr($text, $idxes[1]) =~ s/\A(\h*\n)//);
+        # However, the very last line does not have to end with a newline.
+        # That makes it easier to use command-line scripts.
+        my $didremove = (substr($text, $idxes[1]) =~ s/\A(\h*(?:\n|\Z))//);
+        my $removed = $1;
 
-        unless($removed) {
+        unless($didremove) {
             # Tell the caller where in the source file the problem is
             eval "#line $curr_lineno \"$fn\"\n" .
                     "die(\"L$lang indicator must be on its own line\");";
@@ -189,7 +188,8 @@ files.
         }
     } #foreach lang
 
-    $text .= "\n$curr_trailer\n" if $curr_trailer;
+    $text .= "\n" unless substr($text, length($text)-1) eq "\n";
+    $text .= "$curr_trailer\n" if $curr_trailer;
 
     unless($has_lang) {
         if($add_Ln) {
