@@ -10,7 +10,7 @@
 #   `axk_script_*` is used by only one Core instance.
 
 package XML::Axk::L1;
-use XML::Axk::Base;
+use XML::Axk::Base qw(:default now_names);
 
 use XML::Axk::Matcher::XPath;
 use XML::Axk::Matcher::Always;
@@ -23,7 +23,7 @@ require XML::Axk::Language;
 require Exporter;
 our @EXPORT = qw(
     pre_all pre_file post_file post_all perform
-    always never xpath sel);
+    always never xpath sel on run);
 our @EXPORT_OK = qw( @SP_names );
 
 # Helpers ======================================================== {{{1
@@ -69,8 +69,8 @@ sub post_all :prototype(&) {
 ## since that's how Perl's prototypes are set up the cleanest (block first).
 ## @params required &action     A block to execute when the pattern matches
 ## @params required pattern     The pattern
-sub perform :prototype(&@) {
-    #say Dumper(\@_);
+sub add_to_worklist {
+    #say "add_to_worklist args: ", Dumper(\@_);
     my ($drAction, $refPattern, $when) = @_;
     #say "perform(): ", Dumper(\@_);
     $when = $when // HI;    # only on entry, by default
@@ -82,6 +82,28 @@ sub perform :prototype(&@) {
     my $sandbox = _sandbox or croak("Can't find sandbox in perform");
     push @{$sandbox->worklist}, [$refPattern, $drAction, $when];
 } #perform()
+
+# User-facing alias for add_to_worklist
+sub perform :prototype(&@) {
+    goto &add_to_worklist;  # Need goto so that _sandbox() can use caller(1)
+}
+
+# run { action } [optional <when>] - syntactic sugar for sub {}, when
+sub run :prototype(&;$) {
+    return @_;
+} #run()
+
+# pattern-first style - on {} run {} [when];
+sub on :prototype(&@) {
+    my ($drMakeMatcher, $drAction, $when) = @_;
+
+    #say "MakeMatcher: ", Dumper($drMakeMatcher);
+    my $matcher = &$drMakeMatcher;
+    #say "Matcher: ", Dumper($matcher);
+
+    @_=($drAction, $matcher, $when);
+    goto &add_to_worklist;
+} # on()
 
 # }}}1
 # Definers for matchers ========================================== {{{1
@@ -101,7 +123,7 @@ sub never :prototype() {
 } #never()
 
 # Make an XPath matcher
-sub xpath :prototype(@) {
+sub xpath {
     my $path = shift or croak("No expression provided!");
     $path = $$path if ref $path;
 
@@ -114,7 +136,7 @@ sub xpath :prototype(@) {
 } #xpath()
 
 # Make a selector matcher
-sub sel :prototype(@) {
+sub sel {
     my $path = shift or croak("No expression provided!");
     $path = $$path if ref $path;
 
@@ -132,7 +154,7 @@ sub sel :prototype(@) {
 # Script parameters ============================================== {{{1
 
 # Script-parameter names
-our @SP_names = qw($C @F $D $E);
+our @SP_names = qw($C @F $D $E $NOW);
 
 sub update {
     #say "L1::update: ", Dumper(\@_);
@@ -141,6 +163,8 @@ sub update {
 
     $hrSP->{'$D'} = $opts{document} or croak("No document");
     $hrSP->{'$E'} = $opts{record} or croak("No record");
+    croak("You are in a timeless maze") unless defined $opts{NOW};
+    $hrSP->{'$NOW'} = now_names $opts{NOW};
     #while (my ($key, $value) = each %new_sps) { }
 } #update()
 

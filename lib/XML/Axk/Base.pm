@@ -26,11 +26,11 @@ use constant {
     # When to run an action --- pre, post, or both (CIAO).
     HI => 2,
     BYE => 1,
-    CIAO => 0,
+    CIAO => 0,  # the only falsy one
 };
 
 our @EXPORT = qw(true false HI BYE CIAO);
-our @EXPORT_OK = qw(any SCRIPT_PKG_PREFIX);
+our @EXPORT_OK = qw(any SCRIPT_PKG_PREFIX now_names);
 our %EXPORT_TAGS = (
     default => [@EXPORT],
     all => [@EXPORT, @EXPORT_OK]
@@ -78,6 +78,12 @@ sub any (&@)
     }
     return 0;
 }
+
+# Names of NOW constants, for debugging
+sub now_names {
+    my %names=(HI,"entering", BYE,"leaving", CIAO,"both");
+    return $names{+shift} || "unknown";
+} # now_names
 
 1;
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker ft=perl: #

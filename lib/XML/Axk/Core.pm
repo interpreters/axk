@@ -260,7 +260,10 @@ sub _run_worklist {
     my $self = shift;
     my $now = shift;        # $now = HI, BYE, or CIAO
 
-    my %CPs = (@_);         # Core parameters
+    my %CPs = (             # Core parameters
+        NOW => $now,
+        @_
+    );
 
     # Assign the SPs from the CPs --
 
@@ -275,13 +278,13 @@ sub _run_worklist {
         my ($refPattern, $refAction, $when) = @$lrItem;
         #say "At time $now: running ", Dumper($lrItem);
 
-        next if $when && ($now != $when);
+        next if $when && ($now != $when);   # CIAO is the only falsy one
 
         next unless $refPattern->test(\%CPs);
             # Matchers use CPs so they are independent of language.
 
         eval { &$refAction };   # which context are they evaluated in?
-        croak "action: $@" if $@;
+        die "action: $@" if $@;
     } #foreach worklist item
 } #_run_worklist
 
