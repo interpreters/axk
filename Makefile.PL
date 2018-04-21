@@ -21,6 +21,9 @@ WriteMakefile(
     },
     BUILD_REQUIRES => {
         'Test::More' => '0.92',
+        'Test::Kit' => '0',
+        'Test::Class' => '0',
+        'Test::Class::Load' => '0',
         'Capture::Tiny' => '0',
         'Module::Loaded' => '0',
         'File::Spec' => '0',

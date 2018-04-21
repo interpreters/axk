@@ -1,24 +1,25 @@
 #!perl -T
 
-package main;
+package T::Object::TinyDefaults;
 
-use 5.018;
-use strict;
-use warnings;
-use Test::More tests=>27;
+use AxkTest;
+use parent 'Test::Class';
 
-BEGIN {
-    use_ok( 'Object::TinyDefaults' ) || print "Bail out!\n";
+sub class { "Object::TinyDefaults" };
+
+sub startup :Tests(startup=>1) {
+    my $test = shift;
+    use_ok $test->class;
+    diag( "Testing Object::TinyDefaults $Object::TinyDefaults::VERSION, Perl $], $^X" );
 }
-
-diag( "Testing Object::TinyDefaults $Object::TinyDefaults::VERSION, Perl $], $^X" );
 
 # No defaults ===================================================== {{{1
 package NoDefaults {
     use Object::TinyDefaults qw(foo bar);
 }
 
-package main {
+package T::Object::TinyDefaults {
+sub no_defaults : Tests {
     my $x = NoDefaults->new();
     isa_ok($x, 'NoDefaults');
     isa_ok($x, 'Object::TinyDefaults');
@@ -29,14 +30,15 @@ package main {
     is($x->foo, 42, 'numeric assignment');
     is($x->bar, 'yes', 'string assignment');
 }
-
+}
 # }}}1
 # Defaults and field names ======================================== {{{1
 package DefaultsAndNames {
     use Object::TinyDefaults { foo => 'default' }, qw(foo bar);
 }
 
-package main {
+package T::Object::TinyDefaults {
+sub defaults_and_names : Tests {
     my $x = DefaultsAndNames->new();
     isa_ok($x, 'DefaultsAndNames');
     isa_ok($x, 'Object::TinyDefaults');
@@ -47,6 +49,7 @@ package main {
     is($x->foo, 42, 'numeric assignment');
     is($x->bar, 'yes', 'string assignment');
 }
+}
 
 # }}}1
 # Defaults and field names; some names only in defaults =========== {{{1
@@ -54,7 +57,8 @@ package DefaultsWithNamesAndNames {
     use Object::TinyDefaults { quux => 'default' }, qw(foo bar);
 }
 
-package main {
+package T::Object::TinyDefaults {
+sub defaults_with_names_and_names {
     my $x = DefaultsWithNamesAndNames->new();
     isa_ok($x, 'DefaultsWithNamesAndNames');
     isa_ok($x, 'Object::TinyDefaults');
@@ -68,6 +72,7 @@ package main {
     is($x->foo, 42, 'numeric assignment');
     is($x->bar, 'yes', 'string assignment');
 }
+}
 
 # }}}1
 # Defaults only =================================================== {{{1
@@ -75,7 +80,8 @@ package DefaultsOnly {
     use Object::TinyDefaults { quux => 'default', foo=>42 };
 }
 
-package main {
+package T::Object::TinyDefaults {
+sub defaults_only {
     my $x = DefaultsOnly->new();
     isa_ok($x, 'DefaultsOnly');
     isa_ok($x, 'Object::TinyDefaults');
@@ -86,9 +92,9 @@ package main {
     is($x->quux, 'yes', 'string assignment (quux)');
     is($x->foo, 'indeed', 'string assignment (foo)');
 }
+}
 
 # }}}1
 
-#done_testing();
-
+1;
 # vi: set ts=4 sts=4 sw=4 et ai fdm=marker fdl=0: #

@@ -1,6 +1,6 @@
 #!/bin/sh
 if [[ $# -eq 0 ]]; then
-    args=(-f ex/xml1.axk ex/ex1.xml)
+    args=(-f ex/xml1.axk t/ex1.xml)
 else
     args=("$@")
 fi
