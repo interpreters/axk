@@ -5,9 +5,7 @@ use strict;
 use warnings;
 use Test::More;
 
-ok(1,"Not here yet!");
-
-done_testing();
+plan skip_all => 'Not here yet!';
 __END__
 
 ./run -e 'perform { say $E; } xpath("//item"); perform { say $E; } xpath(q<//@attrname>);' ex/ex1.xml

@@ -8,7 +8,8 @@ use XML::Axk::Core v0.1.0;
 use XML::Axk::App v0.1.0;
 use Import::Into;
 
-use version 0.77; our $VERSION = version->declare("v0.1.1");
+use version 0.77; our $VERSION = version->declare("v0.1_2");
+    # underscore before last component => alpha version
 
 sub import {
     XML::Axk::Core->import::into(1);
