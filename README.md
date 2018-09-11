@@ -13,28 +13,26 @@ To install this module, run the following commands:
 
 After installation, run `axk`.  Options are similar to `awk`.  Input scripts
 are Perl 5.18 with functions to, e.g., run on any node matching a given XPath.
+See [L1.md](L1.md) for more details.  For example, the script
+
+    L1
+    on { xpath(q<//item>) } run { say "$NOW: " . $E->getTagName };
+
+or the equivalent command line
+
+    axk -e 'on { xpath(q<//item>) } run { say "$NOW: " . $E->getTagName }' t/ex/ex1.xml
+
+will print the tag name of each `//item` node in the input, along with an
+indication (`$NOW`) of whether the action is being run when `entering` or
+`leaving` the node.
 
 ## SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
-perldoc command.
+perldoc command:
 
-    perldoc XML::Axk
-
-You can also look for information at:
-
-    RT, CPAN's request tracker (report bugs here)
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=XML-Axk
-
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/XML-Axk
-
-    CPAN Ratings
-        http://cpanratings.perl.org/d/XML-Axk
-
-    Search CPAN
-        http://search.cpan.org/dist/XML-Axk/
-
+ - `perldoc XML::Axk::App` for command-line usage instructions
+ - `perldoc XML::Axk::L1` for the language reference
 
 ## LICENSE AND COPYRIGHT
 

@@ -1,5 +1,8 @@
 # MANIFEST.SKIP for Text::PerlPP
 
+# Markdown files that we keep for GitHub, but don't need on CPAN
+^L1.md
+
 # Avoid version control files.
 \bRCS\b
 \bCVS\b
