@@ -35,7 +35,7 @@ my %defaults;
 sub import {
     my $class = shift;
     return unless $class eq __PACKAGE__;
-        # Without this, it also gets imported into XML::Axk::V1 and
+        # Without this, it also gets imported into XML::Axk::L1 and
         # axk_script_*, trashing symbols and preventing execution.
     my $pkg   = caller;
     #print "Import into $pkg: (", join(', ', @_), ")\n";

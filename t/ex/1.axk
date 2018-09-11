@@ -1,5 +1,5 @@
 say "hello from foo!";
-V1
+L1
 #BEGIN { no strict 'refs'; say Dumper(\%{"axk_script_0::"}); };
 
 pre_all {

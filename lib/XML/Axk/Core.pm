@@ -392,7 +392,7 @@ sub new {
     };
     my $self = bless($data, $class);
 
-    # Load this instance into the global namespace so the Vn packages can
+    # Load this instance into the global namespace so the Ln packages can
     # get at it
     do {
         no strict 'refs';

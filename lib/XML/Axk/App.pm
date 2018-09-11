@@ -47,15 +47,19 @@ my %CMDLINE_OPTS = (
     #INCLUDE => ['i','|include=s@'],
     #KEEP_GOING => ['k','|keep-going',false], #not in gawk
     #LIB => ['l','|load=s@'],
-    #LINT => ['L','|lint:s'],
+    LANGUAGE => ['L','|language:s'],
     # --man reserved
     # OUTPUT_FILENAME => ['o','|output=s', ""], # conflict with gawk
+    # OPTIMIZE => ['O','|optimize'],
     #SANDBOX => ['S','|sandbox',false],
     #SOURCES reserved
     # --usage reserved
-    PRINT_VERSION => ['V','|version', false],
+    PRINT_VERSION => ['version','', false],
     DEFS => ['v','|var:s%'],
     # -? reserved
+    #
+    # gawk(1) long options: --dump-variables, --exec, --gen-po, --lint,
+    # --profile
 
     # Long-only options that are specific to axk.
     NO_INPUT => ['no-input'],   # When set, don't read any files.  This is so
@@ -131,6 +135,11 @@ sub Main {
     my %opts;
     parse_command_line(from => $lrArgs, into => \%opts);
 
+    if($opts{PRINT_VERSION}) {
+        say "axk $VERSION";
+        return 0;
+    }
+
     # Treat the first non-option arg as a script if appropriate
     unless(@{$opts{SOURCES}}) {
         croak "No scripts to run" unless @$lrArgs;
@@ -149,7 +158,7 @@ sub Main {
         } else {
             $core->load_script_text($text,
                 "(cmd line script #@{[++$cmd_line_idx]})",
-                true);  # true => add a Vn if there isn't one in the script
+                true);  # true => add a Ln if there isn't one in the script
         }
     } #foreach source
 
@@ -185,7 +194,7 @@ Version 0.1.0
 
     axk [options] [--] [script] [input filename(s)]
 
-=head1 OPTIONS
+=head1 INPUTS
 
 A filename of C<-> represents standard input.  To actually process a file
 named C<->, you will need to use shell redirection (e.g., C<< axk < - >>).
@@ -193,11 +202,51 @@ Standard input is the default if no input filenames are given.
 
 The first non-option argument is a program if no -e or -f are given.
 The script language version for a -e will default to the latest if the text
-on the command line doesn't match C</^\s*V\s*\d+[\s;]+/>.
+on the command line doesn't specify a language version.
+
+=head1 OPTIONS
+
+=over
+
+=item -e, --source B<text>
+
+Run the axk code given as B<text>.
+
+=item -f, --file B<filename>
+
+Run the axk code given in the file called B<filename>.
+
+=item -L, --language B<language>
+
+B<Not yet implemented:>
+Interpret the following B<-e> in axk language B<language>.
+
+=item --show B<what>
+
+Show debugging information.  Currently implemented are:
+
+=over
+
+=item source
+
+Show the Perl source generated from the provided axk code.
+
+=back
+
+=item -v, --var B<name>=B<value>
+
+B<Not yet implemented:>
+Set B<name>=B<value>.
+
+=item --version
+
+Print the version of axk and exit
+
+=back
 
 =head1 AUTHOR
 
-Christopher White, C<< <cxwembedded at gmail.com> >>
+Christopher White, C<cxwembedded at gmail.com>
 
 =head1 BUGS
 
