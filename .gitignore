@@ -43,3 +43,6 @@ inc/
 
 # Capture::Tiny
 DEBUG*
+
+# Other
+/stuff

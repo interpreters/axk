@@ -28,6 +28,9 @@ our @EXPORT = qw(
     always never xpath sel on run entering leaving whenever);
 our @EXPORT_OK = qw( @SP_names );
 
+# Config
+our $C_WANT_TEXT = 0;
+
 # Helpers ======================================================== {{{1
 
 # Accessor

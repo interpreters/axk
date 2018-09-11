@@ -1,5 +1,6 @@
-#!perl
 # AxkTest.pm: Test::Kit for XML::Axk
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
+package AxkTest;
 
 use Test::Kit;
 use 5.018;
@@ -10,7 +11,8 @@ include feature => {
     import => [':5.18']
 };
 include qw(strict warnings);
-include qw(Test::More File::Spec XML::Axk::App);
+include qw(Test::More File::Spec XML::Axk::App XML::Axk::Core);
+include qw(AxkTest::Helpers);
 include 'Capture::Tiny' => {
     import => [qw(capture_stdout capture_merged)]
 };

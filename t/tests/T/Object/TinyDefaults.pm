@@ -1,4 +1,5 @@
 #!perl -T
+# Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 package T::Object::TinyDefaults;
 
@@ -18,8 +19,7 @@ package NoDefaults {
     use Object::TinyDefaults qw(foo bar);
 }
 
-package T::Object::TinyDefaults {
-sub no_defaults : Tests {
+sub no_defaults :Tests {
     my $x = NoDefaults->new();
     isa_ok($x, 'NoDefaults');
     isa_ok($x, 'Object::TinyDefaults');
@@ -30,15 +30,14 @@ sub no_defaults : Tests {
     is($x->foo, 42, 'numeric assignment');
     is($x->bar, 'yes', 'string assignment');
 }
-}
+
 # }}}1
 # Defaults and field names ======================================== {{{1
 package DefaultsAndNames {
     use Object::TinyDefaults { foo => 'default' }, qw(foo bar);
 }
 
-package T::Object::TinyDefaults {
-sub defaults_and_names : Tests {
+sub defaults_and_names :Tests {
     my $x = DefaultsAndNames->new();
     isa_ok($x, 'DefaultsAndNames');
     isa_ok($x, 'Object::TinyDefaults');
@@ -49,7 +48,6 @@ sub defaults_and_names : Tests {
     is($x->foo, 42, 'numeric assignment');
     is($x->bar, 'yes', 'string assignment');
 }
-}
 
 # }}}1
 # Defaults and field names; some names only in defaults =========== {{{1
@@ -57,8 +55,7 @@ package DefaultsWithNamesAndNames {
     use Object::TinyDefaults { quux => 'default' }, qw(foo bar);
 }
 
-package T::Object::TinyDefaults {
-sub defaults_with_names_and_names {
+sub defaults_with_names_and_names :Tests {
     my $x = DefaultsWithNamesAndNames->new();
     isa_ok($x, 'DefaultsWithNamesAndNames');
     isa_ok($x, 'Object::TinyDefaults');
@@ -72,7 +69,6 @@ sub defaults_with_names_and_names {
     is($x->foo, 42, 'numeric assignment');
     is($x->bar, 'yes', 'string assignment');
 }
-}
 
 # }}}1
 # Defaults only =================================================== {{{1
@@ -80,8 +76,7 @@ package DefaultsOnly {
     use Object::TinyDefaults { quux => 'default', foo=>42 };
 }
 
-package T::Object::TinyDefaults {
-sub defaults_only {
+sub defaults_only :Tests {
     my $x = DefaultsOnly->new();
     isa_ok($x, 'DefaultsOnly');
     isa_ok($x, 'Object::TinyDefaults');
@@ -91,7 +86,6 @@ sub defaults_only {
     $x->{foo} = 'indeed';
     is($x->quux, 'yes', 'string assignment (quux)');
     is($x->foo, 'indeed', 'string assignment (foo)');
-}
 }
 
 # }}}1

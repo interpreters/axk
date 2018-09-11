@@ -30,14 +30,14 @@ sub localpath {
 {
     my $out =
         capture_stdout
-            { XML::Axk::App::Main([ '-f', localpath('02.axk'), '--no-input']) };
+            { XML::Axk::App::Main([ '-f', localpath('ex/02.axk'), '--no-input']) };
     is($out, '1337', 'on-disk script runs');
 }
 
 # }}}1
 # Script with no language indicator =============================== {{{1
 {
-    eval { XML::Axk::App::Main([ '-f', localpath('02-noL.axk'),
+    eval { XML::Axk::App::Main([ '-f', localpath('ex/02-noL.axk'),
                                     '--no-input']) };
     my $err = $@;
     like($err, qr/No language \(Ln\) specified/, 'detects missing Ln');

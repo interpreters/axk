@@ -44,7 +44,7 @@ sub localpath {
 # Script on disk ================================================== {{{1
 {
     my $core = XML::Axk::Core->new();
-    $core->load_script_file(localpath '02.axk');
+    $core->load_script_file(localpath 'ex/02.axk');
 
     my $out = capture_stdout { $core->run(); };
     is($out, '1337', 'on-disk script runs');
@@ -54,7 +54,7 @@ sub localpath {
 # Script with no language indicator =============================== {{{1
 {
     my $core = XML::Axk::Core->new();
-    eval { $core->load_script_file(localpath '02-noL.axk'); };
+    eval { $core->load_script_file(localpath 'ex/02-noL.axk'); };
     my $err = $@;
     like($err, qr/No language \(Ln\) specified/, 'detects missing Ln');
 }
