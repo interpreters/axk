@@ -1,6 +1,11 @@
 L1
 
-perform { say "** This shouldn't have happened" } never;
+pre_all { say "pre_all" };
+pre_file { say "pre_file" };
+post_all { say "post_all" };
+post_file { say "post_file" };
+
+perform { die "** This shouldn't have happened" } never;
 
 perform { say "hi  ", $E->getTagName if $E->can("getTagName"); } always, HI;
 perform { say "bye ", $E->getTagName if $E->can("getTagName"); } always, BYE;

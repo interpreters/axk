@@ -322,19 +322,21 @@ sub run {
         #say "Processing $infn";
 
         # Clear the SPs before each file for consistency.
+        # TODO remove $C and @F from the codebase and samples.  They are
+        # leftovers from before the split of the languages into Ln modules.
         $self->{sp}->{'$C'} = undef;
         @{$self->{sp}->{'@F'}} = ();
 
         # For now, just process lines rather than XML nodes.
         if($infn eq '-') {  # stdin
-            open($fh, '<-') or croak "Can't open stdin!??!!";
+            open($fh, '<-') or croak "Can't open stdin: $!";
         } else {            # disk file
             open($fh, "<", $infn) or croak "Can't open $infn: $!";
                 # if $infn is a reference, its contents will be used -
                 # http://www.perlmonks.org/?node_id=745018
         }
 
-        $self->run_sax_fh($fh, $infn);
+        $self->run_sax_fh($fh, $infn);  # TODO permit selecting DOM mode
 
         close($fh) or warn "close failed: $!";
 
@@ -369,13 +371,6 @@ sub new {
         options => $hrOpts,
 
         # Load these in the order they are defined in the scripts.
-        #our @pre_all = ();
-        #our @pre_file = ();
-        #our @worklist = ();
-        #
-        #our @post_file = ();
-        #our @post_all = ();
-
         pre_all => [],      # List of \& to run before reading the first file
         pre_file => [],     # List of \& to run before reading each file
         worklist => [],     # List of [$refCondition, \&action, $when] to be run against each node.
