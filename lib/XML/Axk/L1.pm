@@ -240,7 +240,9 @@ XML::Axk::Core::L1 - ack-like XML processor, language 1
 
 =head1 PATTERNS AND ACTIONS
 
-=head2 C<< on {<matcher>} run {<action>} [, <when>] >>
+=over
+
+=item * C<< on {<matcher>} run {<action>} [, <when>] >>
 
 Whenever C<< <matcher> >> says that a node matches, run C<< <action> >>.
 The optional C<< <when> >> parameter says when in the course of processing to
@@ -262,7 +264,7 @@ Both C<HI> and C<BYE>.  Suggestions for alternative terminology are welcome.
 
 =back
 
-=head2 C<entering>, C<whenever> C<leaving>
+=item * C<entering>, C<whenever> C<leaving>
 
     entering {<matcher>} run {<action>}
     whenever {<matcher>} run {<action>}
@@ -271,7 +273,7 @@ Both C<HI> and C<BYE>.  Suggestions for alternative terminology are welcome.
 The same as C<on {} run {}>, with C<when> set to C<HI>, C<CIAO>, or C<BYE>
 respectively.
 
-=head2 C<< perform { <action> } <matcher> [, <when>] >>
+=item * C<< perform { <action> } <matcher> [, <when>] >>
 
 If you prefer RPN, or you want to save some characters, you can put the
 C<< <matcher> >> after the C<< <action> >> using C<perform>.  For example,
@@ -279,6 +281,8 @@ the following two lines have exactly the same effect:
 
     on { xpath(q<//item>) } run {say "$NOW: " . $E->getTagName}, CIAO
     perform {say "$NOW: " . $E->getTagName} xpath(q<//item>), CIAO
+
+=back
 
 =head1 VARIABLES
 
@@ -299,43 +303,51 @@ The XML element that was matched
 =item B<$NOW>
 
 The current phase, as a human-readable string: C<entering> for C<HI>,
-C<leaving> for C<BYE>, and C<BOTH> for C<CIAO>.
+C<leaving> for C<BYE>, and C<both> for C<CIAO>.
 
 =back
 
 =head1 MATCHERS
 
-=head2 C<< xpath('xpath expression') >>
+=over
+
+=item * C<< xpath('xpath expression') >>
 
 Match nodes that match the given XPath expression.  Remember that Perl will
 interpolate C<@name> in double-quotes, so single-quote or C<q{}> your XPath
 expressions.
 
-=head2 C<< sel('selector') >>
+=item * C<< sel('selector') >>
 
 Match nodes that match the given selector.
 
-=head2 C<always>, C<never>
+=item * C<always>, C<never>
 
 Always or never match, respectively.
 
+=back
+
 =head1 SPECIAL ACTIONS
 
-=head2 C<< pre_all {<block>} >>
+=over
+
+=item * C<< pre_all {<block>} >>
 
 Run C<< <block> >> before any file is processed.
 
-=head2 C<< pre_file {<block>} >>
+=item * C<< pre_file {<block>} >>
 
 Run C<< <block>($filename) >> before each file is processed.
 
-=head2 C<< post_file {<block>} >>
+=item * C<< post_file {<block>} >>
 
 Run C<< <block>($filename) >> after each file is processed.
 
-=head2 C<< post_all {<block>} >>
+=item * C<< post_all {<block>} >>
 
 Run C<< <block> >> after all files have been processed.
+
+=back
 
 =head1 AUTHOR
 

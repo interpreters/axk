@@ -28,11 +28,6 @@ __END__
 
 XML::Axk - ack-like XML processor
 
-=head1 VERSION
-
-Axk version 0.1.1, which includes Core 0.1.0 and App 0.1.0 (or higher).
-Numbers follow L<Semantic versioning|https://semver.org>.
-
 =head1 USAGE
 
     use XML::Axk;
@@ -47,52 +42,19 @@ For details about the command-line interface, see L<XML::Axk::App>.
 
 For details about the library interface, see L<XML::Axk::Core>.
 
-=head1 OPTIONS
-
-None yet!
-
-A filename of C<-> represents standard input.  To actually process a file
-named C<->, you will need to use shell redirection (e.g., C<< axk < - >>).
-
-=head1 AUTHOR
-
-Christopher White, C<cxwembedded at gmail.com>
-
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-xml-axk at rt.cpan.org>, or
-through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Axk>.  I will be notified,
-and then you'll automatically be notified of progress on your bug as I make
-changes.
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc XML::Axk
+    perldoc XML::Axk::App
+    perldoc XML::Axk::Core
 
-You can also look for information at:
+You can also look for information on the GitHub project page at
+L<https://github.com/interpreters/axk>.
 
-=over 4
+=head1 AUTHOR
 
-=item * RT: CPAN's request tracker (report bugs here)
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=XML-Axk>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/XML-Axk>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/XML-Axk>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/XML-Axk/>
-
-=back
+Christopher White, C<cxwembedded at gmail.com>
 
 =head1 LICENSE AND COPYRIGHT
 
