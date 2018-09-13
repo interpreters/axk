@@ -77,12 +77,12 @@ sub post_all :prototype(&) {
 ##                              whether the element described in
 ##                              core-parameter hash %CPs matches.
 ## @params optional when        If provided, when to run the action:
-##                              HI, BYE, or CIAO.  Default is HI.
+##                              HI, BYE, or CIAO.  Default is BYE.
 sub add_to_worklist {
     my $sandbox = _sandbox or croak "Can't find sandbox";
-    #say "add_to_worklist args: ", Dumper(\@_);
     my ($drAction, $refPattern, $when) = @_;
-    $when = $when // HI;    # only on entry, by default
+
+    $when = $when // BYE;   # only on exit, by default
     $refPattern = \( my $temp = $refPattern ) unless ref($refPattern);
 
     push @{$sandbox->worklist}, [$refPattern, $drAction, $when];
@@ -98,25 +98,24 @@ sub run :prototype(&;$) {
     return @_;
 } #run()
 
-# pattern-first style - on {} run {} [when (default HI)];
+# pattern-first style - on {} run {} [when];
+# The default [when] is BYE so that the text content of the node is
+# available --- at HI, all you have are the attributes.
 sub on :prototype(&@) {
     my ($drMakeMatcher, $drAction, $when) = @_;
 
-    #say "MakeMatcher: ", Dumper($drMakeMatcher);
     my $matcher = &$drMakeMatcher;
-    #say "Matcher: ", Dumper($matcher);
-
     @_=($drAction, $matcher, $when);
     goto &add_to_worklist;
 } # on()
 
-# pattern-first style, sugar for symmetry with whenever() and leaving()
-sub entering :prototype(&@) {
+# pattern-first style, sugar for symmetry with whenever() and entering()
+sub leaving :prototype(&@) {
     goto &on
 } #entering()
 
-# pattern-first style, common implementation for BYE and CIAO
-sub _leaving_whenever_impl {
+# pattern-first style, common implementation for HI and CIAO
+sub _entering_whenever_impl {
     croak "Too many arguments" if $#_>2;
     my ($when, $drMakeMatcher, $drAction) = @_;
     my $matcher = &$drMakeMatcher;
@@ -124,16 +123,16 @@ sub _leaving_whenever_impl {
     goto &add_to_worklist;
 } #_leaving_whenever_impl()
 
-# pattern-first style, specific to leaving nodes (BYE) - leaving {} run {};
-sub leaving :prototype(&@) {
-    unshift @_, BYE;
-    goto &_leaving_whenever_impl;
+# pattern-first style, specific to entering nodes (HI) - entering {} run {};
+sub entering :prototype(&@) {
+    unshift @_, HI;
+    goto &_entering_whenever_impl;
 } # leaving()
 
 # pattern-first style, specific to hitting nodes (CIAO) - whenever {} run {};
 sub whenever :prototype(&@) {
     unshift @_, CIAO;
-    goto &_leaving_whenever_impl;
+    goto &_entering_whenever_impl;
 } # whenever()
 
 # }}}1
@@ -232,11 +231,11 @@ XML::Axk::Core::L1 - ack-like XML processor, language 1
 
     L1
     on { xpath(q<//item>) } run {say "$NOW: " . $E->getTagName}, CIAO
-        # "CIAO" can also be "HI" or "BYE" (default HI).
-        # "entering" is a synonym for "on" with no HI/BYE/CIAO.
+        # "CIAO" can also be "HI" or "BYE" (default BYE).
+        # "leaving" is a synonym for "on" with no HI/BYE/CIAO.
     whenever { xpath(q<//item>) } run {say "$NOW: " . $E->getTagName};
         # the same as the "on ... CIAO" line
-    leaving { xpath(q<//item>) } run {say "$NOW: " . $E->getTagName};
+    entering { xpath(q<//item>) } run {say "$NOW: " . $E->getTagName};
 
 =head1 PATTERNS AND ACTIONS
 
@@ -256,7 +255,8 @@ When the node is first reached, before any of its children are processed
 
 =item C<BYE>
 
-After all of the node's children have been processed.
+After all of the node's children have been processed.  This is the default
+so that you have the text content of the node available for inspection.
 
 =item C<CIAO>
 
@@ -290,15 +290,17 @@ When an C<< <action> >> is running, it has access to predefined variables
 that hold the state of the element being matched.  This is similar to C<$0>,
 C<$1>, ... in awk.
 
+At present, L1 uses L<XML::DOM>.
+
 =over
 
 =item B<$D>
 
-The current XML document
+The current XML document (L<XML::DOM::Document>)
 
 =item B<$E>
 
-The XML element that was matched
+The XML element that was matched (L<XML::DOM::Element>)
 
 =item B<$NOW>
 

@@ -52,6 +52,7 @@ WriteMakefile(
         'parent' => '0',
         'rlib' => '0',
         'Test::More' => '0.92',
+        'Test::Exception' => '0',
         'Test::Kit' => '0',
         'Test::Class' => '0',
         'Test::Class::Load' => '0',
