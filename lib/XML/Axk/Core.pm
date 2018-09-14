@@ -29,7 +29,8 @@ my $scriptnumber = 0;
 # }}}1
 # Loading =============================================================== {{{1
 
-# Load the named script file from disk, but do not execute it
+# Load the named script file from disk, but do not execute it.
+# TODO permit specifying an Ln?
 # @param $self
 # @param $fn {String}   Filename to load
 sub load_script_file {
@@ -51,6 +52,7 @@ sub load_script_file {
 } #load_script_file
 
 # Load the given text, but do not execute it.
+# TODO permit specifying a specific Ln?
 # @param $self
 # @param $text {String} The source text, **which load_script_text may modify.**
 # @param $fn {String}   Filename to use in debugging messages
@@ -116,6 +118,7 @@ files.
         \b\h*;?     # permit trailers for ergonomics
     }mx;
 
+    # Split the file into individual Ln blocks
     while( $text =~ m/$RE_Ln/g ) {
         my @idxes=($-[0], $+[0]);
         my $lang = $1;
@@ -144,7 +147,7 @@ files.
         $length_delta -= length($removed);
 
         my $replacement = '';
-        $has_lang = 1;
+        $has_lang = true;
 
         # End an existing capture if we're switching languages
         if($curr_trailer) {
@@ -186,7 +189,7 @@ files.
             #say "pos = $oldpos; Delta pos = $length_delta";
             pos($text) = $oldpos + $length_delta;
         }
-    } #foreach lang
+    } #foreach Ln block
 
     $text .= "\n" unless substr($text, length($text)-1) eq "\n";
     $text .= "$curr_trailer\n" if $curr_trailer;
@@ -478,14 +481,6 @@ Constructor.  Takes a hash ref of options
 
 Christopher White, C<cxwembedded at gmail.com>
 
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-xml-axk at rt.cpan.org>, or
-through the web interface at
-L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Axk>.  I will be notified,
-and then you'll automatically be notified of progress on your bug as I make
-changes.
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
@@ -504,19 +499,13 @@ L<https://github.com/cxw42/axk>
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=XML-Axk>
 
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/XML-Axk>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/XML-Axk>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/XML-Axk/>
-
 =back
+
+=head1 NOTE
+
+I just recently found out about L<Web::Scraper>, which has some overlapping
+functionality.  However, XML::Axk is targeted specifically at XML, rather
+than HTML, and should eventually support dedicated, non-Perl script languages.
 
 =head1 LICENSE AND COPYRIGHT
 

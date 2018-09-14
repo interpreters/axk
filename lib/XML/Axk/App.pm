@@ -248,12 +248,6 @@ Print the version of axk and exit
 
 Christopher White, C<cxwembedded at gmail.com>
 
-=head1 BUGS
-
-Please report any bugs or feature requests to C<bug-xml-axk at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=XML-Axk>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
@@ -271,18 +265,6 @@ L<https://github.com/cxw42/axk>
 =item * RT: CPAN's request tracker
 
 L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=XML-Axk>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/XML-Axk>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/XML-Axk>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/XML-Axk/>
 
 =back
 
