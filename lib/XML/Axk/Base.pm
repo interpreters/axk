@@ -8,7 +8,7 @@ use Import::Into;
 
 # Pragmas
 use 5.018;
-use feature ":5.18";
+use feature ":5.18";    # Use expressly so we can re-export it below
 use strict;
 use warnings;
 

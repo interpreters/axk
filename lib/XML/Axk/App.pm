@@ -136,7 +136,8 @@ sub Main {
     parse_command_line(from => $lrArgs, into => \%opts);
 
     if($opts{PRINT_VERSION}) {
-        say "axk $VERSION";
+        use XML::Axk;
+        say "axk $XML::Axk::VERSION";
         return 0;
     }
 

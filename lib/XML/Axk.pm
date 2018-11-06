@@ -1,20 +1,12 @@
 #!/usr/bin/env perl
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
-# XML::Axk: Stub package that loads XML::Axk::Core and XML::Axk::Core.
+# XML::Axk: Stub package that just holds the version
 
 package XML::Axk;
 use XML::Axk::Base;     # uses 5.018, so we can safely use v-strings.
-use XML::Axk::Core v0.1.0;
-use XML::Axk::App v0.1.0;
-use Import::Into;
 
 use version 0.77; our $VERSION = version->declare("v0.1_2");
     # underscore before last component => alpha version
-
-sub import {
-    XML::Axk::Core->import::into(1);
-    XML::Axk::App->import::into(1);
-}
 
 1;
 __END__
@@ -30,7 +22,8 @@ XML::Axk - ack-like XML processor
 
 =head1 USAGE
 
-    use XML::Axk;
+    use XML::Axk::App;      # pick whichever you want,
+    use XML::Axk::Core;     # or both
 
     # Canned interface, as if run from the command line
     XML::Axk::App::Main(\@ARGV)
