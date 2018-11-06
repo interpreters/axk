@@ -19,8 +19,6 @@ sub eval_nolex {
 use XML::Axk::Language ();
 use XML::Axk::Sandbox;
 
-use version 0.77; our $VERSION = version->declare("v0.1.0");
-
 # Private vars ========================================================== {{{1
 
 # For giving each script a unique package name

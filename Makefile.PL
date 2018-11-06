@@ -33,8 +33,8 @@ EOT
 WriteMakefile(
     NAME            => 'XML::Axk',
     AUTHOR          => q{Christopher White <cxwembedded@gmail.com>},
-    VERSION_FROM    => 'lib/XML/Axk.pm',
-    ABSTRACT_FROM   => 'lib/XML/Axk.pm',
+    VERSION_FROM    => 'lib/XML/Axk/App.pm',
+    ABSTRACT        => 'ack-like XML processor',
     LICENSE         => 'artistic_2',
     EXE_FILES       => [ 'bin/axk' ],
     MIN_PERL_VERSION => '5.018',

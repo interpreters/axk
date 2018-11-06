@@ -4,11 +4,12 @@ use XML::Axk::Core;
 
 #BEGIN { require Exporter; $Exporter::Verbose=1; }
 
-use version 0.77; our $VERSION = version->declare("v0.1.0");
+# Semantic versioning, packed per Perl rules.  Must always be at least one
+# digit left of the decimal, and six digits right of the decimal.  For
+# prerelease versions, put an underscore before the last three digits.
+our $VERSION = '0.001_002';
 
 use Getopt::Long qw(GetOptionsFromArray :config gnu_getopt);
-
-#use Web::Query::LibXML;
 
 use constant DEBUG			=> false;
 
@@ -136,8 +137,10 @@ sub Main {
     parse_command_line(from => $lrArgs, into => \%opts);
 
     if($opts{PRINT_VERSION}) {
-        use XML::Axk;
-        say "axk $XML::Axk::VERSION";
+        $VERSION =~ m<^([^\.]+)\.(\d{3})(_?)(\d{3})>;
+        printf "axk version %d.%d.%d ($VERSION)%s\n", $1, $2, $4,
+                ($3 ? ' (dev)' : '');
+
         return 0;
     }
 
@@ -187,10 +190,6 @@ __END__
 
 XML::Axk::App - ack-like XML processor, command-line interface
 
-=head1 VERSION
-
-Version 0.1.0
-
 =head1 USAGE
 
     axk [options] [--] [script] [input filename(s)]
@@ -217,14 +216,14 @@ Run the axk code given as B<text>.
 
 Run the axk code given in the file called B<filename>.
 
-=item -L, --language B<language>
+=item -L, --language B<lang>
 
 B<Not yet implemented:>
-Interpret the following B<-e> in axk language B<language>.
+Interpret the following B<-e> in axk language B<lang>.
 
 =item --show B<what>
 
-Show debugging information.  Currently implemented are:
+Show debugging information.  Currently-implemented B<what> values are:
 
 =over
 
@@ -244,6 +243,21 @@ Set B<name>=B<value>.
 Print the version of axk and exit
 
 =back
+
+=head1 PERL INTERFACE
+
+For use in Perl programs:
+
+    use XML::Axk::App;      # pick whichever you want,
+    use XML::Axk::Core;     # or both
+
+    # Canned interface, as if run from the command line
+    XML::Axk::App::Main(\@ARGV)
+
+    # Perl interface
+    my $axk = XML::Axk::Core->new();
+
+For details about the library interface, see L<XML::Axk::Core>.
 
 =head1 AUTHOR
 
