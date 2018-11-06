@@ -47,7 +47,7 @@ my %CMDLINE_OPTS = (
     #INCLUDE => ['i','|include=s@'],
     #KEEP_GOING => ['k','|keep-going',false], #not in gawk
     #LIB => ['l','|load=s@'],
-    LANGUAGE => ['L','|language:s'],
+    LANGUAGE => ['L','|language=s'],
     # --man reserved
     # OUTPUT_FILENAME => ['o','|output=s', ""], # conflict with gawk
     # OPTIMIZE => ['O','|optimize'],
@@ -55,7 +55,7 @@ my %CMDLINE_OPTS = (
     #SOURCES reserved
     # --usage reserved
     PRINT_VERSION => ['version','', false],
-    DEFS => ['v','|var:s%'],
+    DEFS => ['v','|var=s%'],
     # -? reserved
     #
     # gawk(1) long options: --dump-variables, --exec, --gen-po, --lint,
@@ -64,7 +64,7 @@ my %CMDLINE_OPTS = (
     # Long-only options that are specific to axk.
     NO_INPUT => ['no-input'],   # When set, don't read any files.  This is so
                                 # testing with empty inputs is easier.
-    SHOW => ['show',':s@'],     # which debugging output to print.
+    SHOW => ['show','=s@'],     # which debugging output to print.
                                 # TODO make it a hash instead?
 );
 
@@ -143,7 +143,7 @@ sub Main {
 
     # Treat the first non-option arg as a script if appropriate
     unless(@{$opts{SOURCES}}) {
-        croak "No scripts to run" unless @$lrArgs;
+        die "No scripts to run" unless @$lrArgs;
         push @{$opts{SOURCES}}, [false, shift @$lrArgs];
     }
 
