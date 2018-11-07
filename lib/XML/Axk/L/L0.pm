@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-# XML::Axk::L0 - DUMMY axk language, version 0
+# XML::Axk::L::L0 - DUMMY axk language, version 0
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 # This is not a real axk language - it exists for testing.
 
-package XML::Axk::L0;
+package XML::Axk::L::L0;
 use XML::Axk::Base;
 
 # Config

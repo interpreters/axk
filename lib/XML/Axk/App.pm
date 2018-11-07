@@ -188,7 +188,7 @@ __END__
 
 =head1 NAME
 
-XML::Axk::App - ack-like XML processor, command-line interface
+XML::Axk::App - awk-like XML processor, command-line interface
 
 =head1 USAGE
 
@@ -207,6 +207,11 @@ on the command line doesn't specify a language version.
 =head1 OPTIONS
 
 =over
+
+=item -B, --backend B<bkend>
+
+B<Not yet implemented:>
+Take input using the backend B<bkend>.
 
 =item -e, --source B<text>
 

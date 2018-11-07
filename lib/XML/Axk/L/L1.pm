@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# XML::Axk::L1 - axk language, version 1
+# XML::Axk::L::L1 - axk language, version 1
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 # TODO:
@@ -9,7 +9,7 @@
 # - Add a static method to XAC to get the next package name, so that each
 #   `axk_script_*` is used by only one Core instance.
 
-package XML::Axk::L1;
+package XML::Axk::L::L1;
 use XML::Axk::Base qw(:default now_names);
 
 use XML::Axk::Matcher::XPath;
@@ -225,7 +225,7 @@ sub import {
 
 =head1 NAME
 
-XML::Axk::Core::L1 - ack-like XML processor, language 1
+XML::Axk::Core::L1 - awk-like XML processor, language 1
 
 =head1 EXAMPLE
 

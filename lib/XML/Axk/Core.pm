@@ -9,6 +9,47 @@
 package XML::Axk::Core;
 use XML::Axk::Base qw(:all);
 
+=encoding UTF-8
+
+=head1 NAME
+
+XML::Axk::Core - awk-like XML processor, core
+
+=head1 USAGE
+
+    my $core = XML::Axk::Core->new(\%opts);
+    $core->load_script_file($filename);
+    $core->load_script_text($source_text, $filename);
+    $core->run(@input_filenames);
+
+=head1 OPTIONS
+
+A filename of C<-> represents standard input.
+
+=head1 OVERVIEW
+
+axk coordinates languages and backends to process XML files.  Backends read
+XML input and provide it to an axk script.  Languages are the way that
+script is expressed.  Languages and backends can be mixed arbitrarily,
+as long as the backend provides the API the language needs.
+
+A single axk script can include code in any number of languages, but can
+only use one backend.  The first backend referenced (implicitly or
+explicitly) is the one used.
+
+Each language has a default backend, but the user can specify a different
+backend using a pragma.
+
+=head1 SUBROUTINES
+
+=head2 XML::Axk::Core->new
+
+Constructor.  Takes a hash ref of options
+
+=head1 METHODS
+
+=cut
+
 # Wrapper around string eval, way up here so it can't see any of the
 # lexicals below.
 sub eval_nolex {
@@ -27,7 +68,12 @@ my $scriptnumber = 0;
 # }}}1
 # Loading =============================================================== {{{1
 
-# Load the named script file from disk, but do not execute it.
+=head2 load_script_file
+
+Load the named script file from disk, but do not execute it.
+
+=cut
+
 # TODO permit specifying an Ln?
 # @param $self
 # @param $fn {String}   Filename to load
@@ -49,7 +95,12 @@ sub load_script_file {
 
 } #load_script_file
 
-# Load the given text, but do not execute it.
+=head2 load_script_text
+
+Load the given text, but do not execute it.
+
+=cut
+
 # TODO permit specifying a specific Ln?
 # @param $self
 # @param $text {String} The source text, **which load_script_text may modify.**
@@ -71,53 +122,14 @@ sub load_script_text {
     $fn =~ s{"}{-}g;
         # as far as I can tell, #line can't handle embedded quotes.
 
-=pod
-
-=head1 SPECIFYING THE AXK LANGUAGE VERSION
-
-An axk script can include a C<Ln> pragma that specifies the axk
-language version in use.  For example, C<L1> (or, C<L 1>, C<L01>,
-C<L001>, ...) calls for language version 1 (currently defined in
-C<XML::Axk::L1>).  The C<Ln> must be the first non-whitespace item
-on a line.
-
-An axk script on disk without a Ln pragma is an error.  This means
-that the language version must be specified in the C<Ln> form, not as
-a direct C<use ...::Ln;> statement.  This is so that C<Ln> can expand
-to something different depending on the language version, if
-necessary.  However, you can say `use...Ln` manually _in addition to_
-the pragma (e.g., in a different package).
-
-Multiple C<Ln> pragmas are allowed in a file.  This is so you can use
-different language versions in different packages if you want to.
-However, you do so at your own risk!
-
-Command-line scripts without a C<Ln> pragma use the latest version
-automatically.  That is, the behaviour is like perl's C<-E> rather than
-perl's C<-e>.  That risks breakage of inline scripts, but makes it easier
-to use axk from the command line.  If you are using axk in a script,
-specify the C<Ln> pragma at the beginning of your script.  This is
-consistent with the requirement to list the version in your source
-files.
-
-=cut
-
     my $has_lang;
     my $curr_trailer;
     my $lines_added = 0;
 
-    # Regex to match an Ln specification
-    my $RE_Ln = qr{
-        ^\h*L\h*    # has to start the line
-        (?|
-                (?:0*(\d+))     # digit form
-            |   (?:``(\w\+))    # alpha form, e.g., L``foo.  I think ``
-        )                       # is fairly unlikely in real text.
-        \b\h*;?     # permit trailers for ergonomics
-    }mx;
+    # TODO replace this with calls to Preparse routines
 
     # Split the file into individual Ln blocks
-    while( $text =~ m/$RE_Ln/g ) {
+    while( $text =~ m/$RE_Pragma/g ) {
         my @idxes=($-[0], $+[0]);
         my $lang = $1;
         my $oldpos = pos($text);
@@ -157,15 +169,15 @@ files.
 
         # Does this language parse the source text itself?
         my $want_text;
-        eval "require XML::Axk::L$lang";
+        eval "require XML::Axk::L::L$lang";
         die "Can't find language $lang: $@" if $@;
         do {
             no strict 'refs';
-            $want_text = ${"XML::Axk::L${lang}::C_WANT_TEXT"};
+            $want_text = ${"XML::Axk::L::L${lang}::C_WANT_TEXT"};
         };
 
         unless($want_text) {    # Easy case: the script's code is still Perl
-            $replacement .= "use XML::Axk::L$lang;\n";
+            $replacement .= "use XML::Axk::L::L$lang;\n";
 
         } else {                # Harder case: give the Ln the source text
             $curr_trailer =
@@ -174,7 +186,7 @@ files.
             my $following_lineno = $curr_lineno+1;
                 # Number of first line of the text in that language
             $replacement .=
-                "use XML::Axk::L$lang \"$fn\", $following_lineno, " .
+                "use XML::Axk::L::L$lang \"$fn\", $following_lineno, " .
                 "<<'$curr_trailer';\n";
         }
 
@@ -187,6 +199,8 @@ files.
             #say "pos = $oldpos; Delta pos = $length_delta";
             pos($text) = $oldpos + $length_delta;
         }
+
+        %pragmas = ();  # reset for next time through the loop
     } #foreach Ln block
 
     $text .= "\n" unless substr($text, length($text)-1) eq "\n";
@@ -378,7 +392,7 @@ sub new {
         post_file => [],    # List of \& to run after reading each file
         post_all => [],     # List of \& to run after reading the last file
 
-        # Script parameters, indexed by language name (X::A::Ln).
+        # Script parameters, indexed by language name (X::A::L::Ln).
         # Format: { lang name => { varname with sigil => value, ... }, ... }
         sp => {},
 
@@ -439,35 +453,6 @@ sub global_name {
 # === Documentation ===================================================== {{{1
 
 =pod
-
-=encoding UTF-8
-
-=head1 NAME
-
-XML::Axk::Core - ack-like XML processor, core
-
-=head1 VERSION
-
-Version 0.1.0
-
-=head1 USAGE
-
-    my $core = XML::Axk::Core->new(\%opts);
-    $core->load_script_file($filename);
-    $core->load_script_text($source_text, $filename);
-    $core->run(@input_filenames);
-
-=head1 OPTIONS
-
-A filename of C<-> represents standard input.
-
-=head1 SUBROUTINES
-
-=head2 XML::Axk::Core->new
-
-Constructor.  Takes a hash ref of options
-
-=head1 METHODS
 
 =head2 load_script_file
 

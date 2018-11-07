@@ -1,9 +1,9 @@
-L0
+#!axk -L0
 
 Some random text that isn't valid Perl!
 (*!@&$(*#O!@UJJ(O@()@)(
 
-L1
+-L1
 
 say "In L1 at ", __FILE__, ':', __LINE__;
 
