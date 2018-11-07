@@ -9,6 +9,8 @@
 package XML::Axk::Preparse;
 use XML::Axk::Base qw(:all);
 
+use Devel::Peek;
+
 =encoding UTF-8
 
 =head1 NAME
@@ -95,8 +97,11 @@ sub pieces {
             next;
         }
 
-        # Otherwise, normal line
-        die "Source text can't come before a pragma line" unless @retval;
+        # Otherwise, normal line.
+        unless(/^\h*(#|$)/) {    # Ignore blanks and comments before the
+                                # first Ln.
+            die "Source text can't come before a pragma line" unless @retval;
+        }
         $retval[-1]->{text} .= $_;
     }
     close $fh;
@@ -161,6 +166,25 @@ sub assemble {
     return \$retval;
 } #assemble()
 
+=head2 preparse
+
+Invokes pieces() and assemble().  Usage:
+
+    my $srTextOut = preparse($filename, $textIn);
+
+C<textIn> can be a string or a string ref.
+
+=cut
+
+sub preparse {
+    my $filename = $_[0] or croak('Need filename');
+    my $srTextIn = $_[1] or croak('Need text');
+    $srTextIn = \$_[1] unless ref $srTextIn eq 'SCALAR';
+
+    my $hrPieces = pieces($srTextIn);
+    my $srTextOut = assemble($filename, $hrPieces);
+    return $srTextOut;
+} #preparse()
 
 1;
 # vi: set ts=4 sts=4 sw=4 et ai fo-=ro foldmethod=marker: #
