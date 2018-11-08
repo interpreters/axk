@@ -114,6 +114,7 @@ sub load_script_text {
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
 
+    #say "Text is $text";
     my ($lrPieces, $has_lang) = XML::Axk::Preparse::pieces(\$text,
         $add_Ln ? { L => {} } : undef);
 

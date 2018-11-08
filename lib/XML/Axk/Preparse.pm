@@ -65,16 +65,22 @@ first pragma in the source text.
 =cut
 
 sub pieces {
+    my @retval;
+
     my $srText = shift or croak('Need source text');
     croak 'Need a source reference' unless ref $srText eq 'SCALAR';
 
-    my @retval;
+    # Initial pragmas, if any
+    if(@_) {
+        push @retval, { text => '', start => 1, pragmas => (shift) };
+    }
+
     my $hasLang = false;
 
     # Regex to match a pragma line.  A pragma line can include up to two
     # -L/-B items, generally one -L and one -B.
     my $RE_Pragma_Item = q{
-        -(?<kind>[BL])\h*
+        -(?<kind>[BL]|-backend|-language)\h*
         (?:
                 0*(?<digits>\d+)     # digit form
             |   (?<name>[a-zA-Z][a-zA-Z0-9\.]*) # alpha form, e.g., -Lfoo.bar.
@@ -88,28 +94,27 @@ sub pieces {
         # Leader: on a #! line, or first thing on any line
         (?#!\H*\h.*?)?
         (($RE_Pragma_Item)(?{
-            $hrPragmas->{$+{kind}} = { digits => $+{digits}, name => $+{name} };
+            my $kind = $+{kind};
+            $kind = 'B' if $kind eq '-backend';
+            $kind = 'L' if $kind eq '-language';
+            $hrPragmas->{$kind} = { digits => $+{digits}, name => $+{name} };
         })){1,2}
     }mx;
 
-    # Initial pragmas, if any
-    if(@_) {
-        push @retval, { text => '', start => 1, pragmas => (shift) };
-    }
-
     # Main loop
     open my $fh, '<', $srText;
-    while(<$fh>) {
+    LINE: while(<$fh>) {
 
-        MAYBE_PRAGMA: if(/^(?:#!|-)/) {     # fast bail
+        MAYBE_PRAGMA: { if(/^(?:#!|-)/) {     # fast bail
             $hrPragmas = {};
             last MAYBE_PRAGMA unless /$RE_Pragma/;
 
+            #say "Saw pragma";
             $hrPragmas->{name} =~ s/\./::/g if $hrPragmas->{name};
             push @retval, { text => '' , start => $.+1, pragmas => $hrPragmas };
             $hasLang = true if $hrPragmas->{L};
-            next;
-        }
+            next LINE;
+        }}
 
         # Otherwise, normal line.
         # TODO permit the caller to say what to do with lines before the first pragma
@@ -118,6 +123,7 @@ sub pieces {
             die "Source text can't come before a pragma line" unless @retval;
         }
         $retval[-1]->{text} .= $_;
+        #say "Stashed $_";
     }
     close $fh;
 

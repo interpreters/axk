@@ -37,6 +37,8 @@ my %CMDLINE_OPTS = (
     # They are listed in alphabetical order by option name,
     # lowercase before upper, although the code does not require that order.
 
+    #BACKEND => ['b', '|backend=s'],        # TODO
+
     #DUMP_VARS => ['d', '|dump-variables', false],
     #DEBUG => ['D','|debug', false],
     EVAL => ['e','|source=s@', $dr_save_source],
@@ -144,10 +146,15 @@ sub Main {
         return 0;
     }
 
-    # Treat the first non-option arg as a script if appropriate
+    # Treat the first non-option arg as a script file if it exists
+    # and is readable, otherwise as axk source.
     unless(@{$opts{SOURCES}}) {
         die "No scripts to run" unless @$lrArgs;
-        push @{$opts{SOURCES}}, [false, shift @$lrArgs];
+        my $option = shift @$lrArgs;
+        push @{$opts{SOURCES}}, [
+            -r $option && (-f $option || -l $option),
+            $option
+        ];
     }
 
     my $core = XML::Axk::Core->new(\%opts);
@@ -192,7 +199,7 @@ XML::Axk::App - awk-like XML processor, command-line interface
 
 =head1 USAGE
 
-    axk [options] [--] [script] [input filename(s)]
+    axk [options] [--] [input filename or script]
 
 =head1 INPUTS
 
@@ -200,9 +207,15 @@ A filename of C<-> represents standard input.  To actually process a file
 named C<->, you will need to use shell redirection (e.g., C<< axk < - >>).
 Standard input is the default if no input filenames are given.
 
-The first non-option argument is a program if no -e or -f are given.
+The first non-option argument is used for program text if no -e or -f
+are given.  If that argument names a readable regular file or symlink,
+an axk program will be loaded from that file.  Otherwise, that argument
+is used as an axk program directly.
+
 The script language version for a -e will default to the latest if the text
 on the command line doesn't specify a language version.
+
+# TODO make -L and -B apply to following -e's
 
 =head1 OPTIONS
 

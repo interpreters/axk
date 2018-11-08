@@ -29,7 +29,31 @@ like($$srTest, qr/^use XML::Axk::L::L1/);
 like($$srTest, qr/^#line.*foo/m);
 
 $srTest = pp('foo', <<'EOT');
+#!x -L 1
+EOT
+like($$srTest, qr/^use XML::Axk::L::L1/);
+like($$srTest, qr/^#line.*foo/m);
+
+$srTest = pp('foo', <<'EOT');
+#!x --language 1
+EOT
+like($$srTest, qr/^use XML::Axk::L::L1/);
+like($$srTest, qr/^#line.*foo/m);
+
+$srTest = pp('foo', <<'EOT');
 -L1
+EOT
+like($$srTest, qr/^use XML::Axk::L::L1/);
+like($$srTest, qr/^#line.*foo/m);
+
+$srTest = pp('foo', <<'EOT');
+-L 1
+EOT
+like($$srTest, qr/^use XML::Axk::L::L1/);
+like($$srTest, qr/^#line.*foo/m);
+
+$srTest = pp('foo', <<'EOT');
+--language 1
 EOT
 like($$srTest, qr/^use XML::Axk::L::L1/);
 like($$srTest, qr/^#line.*foo/m);
