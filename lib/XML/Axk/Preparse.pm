@@ -9,7 +9,7 @@
 package XML::Axk::Preparse;
 use XML::Axk::Base qw(:all);
 
-use Devel::Peek;
+use Data::Dumper;
 
 =encoding UTF-8
 
@@ -53,7 +53,14 @@ files.
 
 Split the given source text into language-specific pieces.  Usage:
 
-    my $lrPieces = pieces(\$source_text);
+    my $lrPieces = pieces(\$source_text[, $hrInitialPragmas]);
+    my ($lrPieces, $hasLang) = pieces(\$source_text[, $hrInitialPragmas]);
+
+In the second form, it also tells you whether any Ln pragma is present
+in the source text.
+
+If you specify a C<$hrInitialPragma>, it will govern any lines before the
+first pragma in the source text.
 
 =cut
 
@@ -62,6 +69,7 @@ sub pieces {
     croak 'Need a source reference' unless ref $srText eq 'SCALAR';
 
     my @retval;
+    my $hasLang = false;
 
     # Regex to match a pragma line.  A pragma line can include up to two
     # -L/-B items, generally one -L and one -B.
@@ -84,7 +92,12 @@ sub pieces {
         })){1,2}
     }mx;
 
+    # Initial pragmas, if any
+    if(@_) {
+        push @retval, { text => '', start => 1, pragmas => (shift) };
+    }
 
+    # Main loop
     open my $fh, '<', $srText;
     while(<$fh>) {
 
@@ -94,11 +107,13 @@ sub pieces {
 
             $hrPragmas->{name} =~ s/\./::/g if $hrPragmas->{name};
             push @retval, { text => '' , start => $.+1, pragmas => $hrPragmas };
+            $hasLang = true if $hrPragmas->{L};
             next;
         }
 
         # Otherwise, normal line.
-        unless(/^\h*(#|$)/) {    # Ignore blanks and comments before the
+        # TODO permit the caller to say what to do with lines before the first pragma
+        unless(/^\h*(#|$)/) {   # Ignore blanks and comments before the
                                 # first Ln.
             die "Source text can't come before a pragma line" unless @retval;
         }
@@ -106,6 +121,7 @@ sub pieces {
     }
     close $fh;
 
+    return \@retval, $hasLang if wantarray;
     return \@retval;
 } #pieces()
 
@@ -133,7 +149,10 @@ sub assemble {
         # Which language?
         my $lang = ($hrPiece->{pragmas}->{L}->{digits} //
                     $hrPiece->{pragmas}->{L}->{name});
-        die "No language recorded!?!?!!??" unless defined $lang;
+        unless(defined $lang) {
+            $retval .= $hrPiece->{text};
+            next;
+        }
         $lang = "XML::Axk::L::L$lang";
 
         # Does this language parse the source text itself?
@@ -158,7 +177,7 @@ sub assemble {
                 "use $lang \"$filename\", $hrPiece->{start}, " .
                 "<<'$trailer';\n";
             $retval .= $hrPiece->{text};
-            $retval .= "$trailer\n";
+            $retval .= "\n$trailer\n";
             # Don't need a #line because the next language will take care of it
         }
     }
@@ -181,8 +200,8 @@ sub preparse {
     my $srTextIn = $_[1] or croak('Need text');
     $srTextIn = \$_[1] unless ref $srTextIn eq 'SCALAR';
 
-    my $hrPieces = pieces($srTextIn);
-    my $srTextOut = assemble($filename, $hrPieces);
+    my $lrPieces = pieces($srTextIn);
+    my $srTextOut = assemble($filename, $lrPieces);
     return $srTextOut;
 } #preparse()
 

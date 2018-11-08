@@ -8,6 +8,8 @@
 
 package XML::Axk::Core;
 use XML::Axk::Base qw(:all);
+use XML::Axk::Preparse;
+use Data::Dumper;
 
 =encoding UTF-8
 
@@ -82,11 +84,7 @@ sub load_script_file {
 
     my $fn = shift;
     open(my $fh, '<', $fn) or croak("Cannot open $fn");
-    my $contents;
-    {
-        local $/;
-        $contents = <$fh>;
-    }
+    my $contents = do { local $/; <$fh> };
     close $fh;
 
     $self->load_script_text($contents, $fn, false);
@@ -116,104 +114,23 @@ sub load_script_text {
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
 
-    # Prep the filename
-    #$fn =~ s{\\}{\\\\}g;   # This doesn't seem to be necessary based on
-                            # the regex given for #line in perlsyn.
-    $fn =~ s{"}{-}g;
-        # as far as I can tell, #line can't handle embedded quotes.
+    my ($lrPieces, $has_lang) = XML::Axk::Preparse::pieces(\$text,
+        $add_Ln ? { L => {} } : undef);
 
-    my $has_lang;
-    my $curr_trailer;
-    my $lines_added = 0;
-
-    # TODO replace this with calls to Preparse routines
-
-    # Split the file into individual Ln blocks
-    while( $text =~ m/$RE_Pragma/g ) {
-        my @idxes=($-[0], $+[0]);
-        my $lang = $1;
-        my $oldpos = pos($text);
-        my $length_delta = 0;   # how much to adjust pos($text) by
-
-        # Get line number in the present, possibly modified, text
-        my $curr_lineno = 1 + ( () = substr($text, 0, $idxes[0]) =~ /\n/g );
-            # Thanks to ikegami, http://www.perlmonks.org/?node_id=968352
-        $curr_lineno -= $lines_added;
-
-        # Ln must be followed by whitespace and a newline.
-        # This is to keep the line numbering vaguely consistent.
-        # However, the very last line does not have to end with a newline.
-        # That makes it easier to use command-line scripts.
-        my $didremove = (substr($text, $idxes[1]) =~ s/\A(\h*(?:\n|\Z))//);
-        my $removed = $1;
-
-        unless($didremove) {
-            # Tell the caller where in the source file the problem is
-            eval "#line $curr_lineno \"$fn\"\n" .
-                    "die(\"L$lang indicator must be on its own line\");";
-            die $@;
-        }
-
-        $length_delta -= length($removed);
-
-        my $replacement = '';
-        $has_lang = true;
-
-        # End an existing capture if we're switching languages
-        if($curr_trailer) {
-            $replacement .= "$curr_trailer\n" .
-                            "#line $curr_lineno \"$fn\"\n";
-            $curr_trailer='';
-            $lines_added += 2;
-        }
-
-        # Does this language parse the source text itself?
-        my $want_text;
-        eval "require XML::Axk::L::L$lang";
-        die "Can't find language $lang: $@" if $@;
-        do {
-            no strict 'refs';
-            $want_text = ${"XML::Axk::L::L${lang}::C_WANT_TEXT"};
-        };
-
-        unless($want_text) {    # Easy case: the script's code is still Perl
-            $replacement .= "use XML::Axk::L::L$lang;\n";
-
-        } else {                # Harder case: give the Ln the source text
-            $curr_trailer =
-                "AXK_EMBEDDED_SOURCE_DO_NOT_TYPE_THIS_YOURSELF_OR_ELSE";
-
-            my $following_lineno = $curr_lineno+1;
-                # Number of first line of the text in that language
-            $replacement .=
-                "use XML::Axk::L::L$lang \"$fn\", $following_lineno, " .
-                "<<'$curr_trailer';\n";
-        }
-
-        if($replacement) {
-            substr($text, $idxes[0], $idxes[1] - $idxes[0]) = $replacement;
-            $length_delta += (length($replacement) - ($idxes[1] - $idxes[0]));
-        }
-
-        if($length_delta) {
-            #say "pos = $oldpos; Delta pos = $length_delta";
-            pos($text) = $oldpos + $length_delta;
-        }
-
-        %pragmas = ();  # reset for next time through the loop
-    } #foreach Ln block
-
-    $text .= "\n" unless substr($text, length($text)-1) eq "\n";
-    $text .= "$curr_trailer\n" if $curr_trailer;
-
+    #say "Has lang" if $has_lang;
     unless($has_lang) {
         if($add_Ln) {
-            $leader = "use XML::Axk::L1;\n";    # To be updated over time
+            $lrPieces->[0]->{pragmas}->{L}->{digits} = 1;  # default language
         } else {
-            croak "No language (Ln) specified in file $fn";
+            die "No language (Ln) specified in file $fn";
         }
     }
 
+    #say Dumper($lrPieces);
+    my $srNewText = XML::Axk::Preparse::assemble($fn, $lrPieces);
+    $text = $$srNewText;
+
+    $text .= "\n" unless substr($text, length($text)-1) eq "\n";
 
     # Mark the filename for the sake of error messages.
     $leader .= ";\n#line 1 \"$fn\"\n";

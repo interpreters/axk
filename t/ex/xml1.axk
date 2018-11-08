@@ -1,4 +1,4 @@
-L1
+-L1
 
 pre_all { say "pre_all" };
 pre_file { say "pre_file" };

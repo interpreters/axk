@@ -1,4 +1,4 @@
-L1
+#!/usr/bin/env axk -L1
 perform {
     my $x = $C;
     chomp $x;

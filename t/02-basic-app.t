@@ -11,8 +11,6 @@ BEGIN {
     use_ok( 'XML::Axk::App' ) || print "Bail out!\n";
 }
 
-diag( "Testing XML::Axk::App $XML::Axk::App::VERSION, Perl $], $^X" );
-
 sub localpath {
     state $voldir = [File::Spec->splitpath(__FILE__)];
     return File::Spec->catpath($voldir->[0], $voldir->[1], shift)
