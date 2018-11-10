@@ -7,7 +7,7 @@ use parent 'Exporter';
 use Import::Into;
 
 # Pragmas
-use 5.018;
+use 5.020;
 use feature ":5.18";    # Use expressly so we can re-export it below
 use strict;
 use warnings;

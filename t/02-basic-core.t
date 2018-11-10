@@ -1,6 +1,6 @@
 #!perl
 
-use 5.018;
+use 5.020;
 use strict;
 use warnings;
 use Test::More; # tests=>27;

@@ -1,7 +1,7 @@
 #!perl
 # 06-class-tests.t: Run t/tests
 
-use 5.018;
+use 5.020;
 use strict;
 use warnings;
 use rlib;

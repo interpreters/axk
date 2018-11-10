@@ -1,4 +1,4 @@
-use 5.018;
+use 5.020;
 use strict;
 use warnings;
 use Config;
@@ -60,7 +60,7 @@ WriteMakefile(
     ABSTRACT        => 'awk-like XML processor',
     LICENSE         => 'artistic_2',
     EXE_FILES       => [ 'bin/axk' ],
-    MIN_PERL_VERSION => '5.018',
+    MIN_PERL_VERSION => '5.020',
     CONFIGURE_REQUIRES => {
         'Config' => '0',
         'ExtUtils::MakeMaker' => '0',
