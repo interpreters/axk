@@ -1,8 +1,0 @@
-#!/usr/bin/env axk -L1
-perform {
-    my $x = $C;
-    chomp $x;
-    say __FILE__, " sees line $x";
-    say __FILE__, ' ', join '; ', @F;
-} qr/.?/;
-

@@ -105,7 +105,6 @@ Load the given text, but do not execute it.  Usage:
 
 =cut
 
-# TODO permit specifying a specific Ln?
 # @param $self
 # @param $text {String} The source text, **which load_script_text may modify.**
 # @param $filename {String}   Filename to use in debugging messages
@@ -127,14 +126,13 @@ sub load_script_text {
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
 
-    #say "Text is $text";
     my $hrInitialPragmas = {};
-    $hrInitialPragmas = { L => {$curr_lang ? (name => '' . $curr_lang) : ()} }
-        if $add_Ln || $curr_lang;
+    if($add_Ln || $curr_lang) {
+        $hrInitialPragmas = { L => {$curr_lang ? (name => '' . $curr_lang) : ()} };
+    }
 
     my ($lrPieces, $has_lang) = XML::Axk::Preparse::pieces(\$text, $hrInitialPragmas);
 
-    #say "Has lang" if $has_lang;
     unless($has_lang || $curr_lang) {
         if($add_Ln) {
             $lrPieces->[0]->{pragmas}->{L}->{digits} = 1;  # default language
@@ -143,7 +141,6 @@ sub load_script_text {
         }
     }
 
-    #say Dumper($lrPieces);
     my $srNewText = XML::Axk::Preparse::assemble($fn, $lrPieces);
     $text = $$srNewText;
 
@@ -252,10 +249,15 @@ sub run_sax_fh {
 
 } #run_sax_fh()
 
-# Run the loaded script(s).  Takes a list of inputs.  Strings are treated
-# as filenames; references to strings are treated as raw data to be run
-# as if read off disk.  A filename of '-' represents STDIN.  To process a
-# disk file named '-', read its contents first and pass them in as a ref.
+=head2 run
+
+Run the loaded script or scripts.  Takes a list of inputs.  Strings are treated
+as filenames; references to strings are treated as raw data to be run
+as if read off disk.  A filename of '-' represents STDIN.  To process a
+disk file named '-', read its contents first and pass them in as a ref.
+
+=cut
+
 sub run {
     my $self = shift;
 
@@ -270,11 +272,7 @@ sub run {
         my $fh;
         #say "Processing $infn";
 
-        # Clear the SPs before each file for consistency.
-        # TODO remove $C and @F from the codebase and samples.  They are
-        # leftovers from before the split of the languages into Ln modules.
-        $self->{sp}->{'$C'} = undef;
-        @{$self->{sp}->{'@F'}} = ();
+        # TODO? Clear the SPs before each file for consistency?
 
         # For now, just process lines rather than XML nodes.
         if($infn eq '-') {  # stdin
@@ -387,12 +385,6 @@ sub global_name {
 # === Documentation ===================================================== {{{1
 
 =pod
-
-=head2 load_script_file
-
-=head2 load_script_text
-
-=head2 run
 
 =head1 AUTHOR
 

@@ -32,7 +32,6 @@ t/06-class-tests.t
 t/ex/02-noL.axk
 t/ex/02.axk
 t/ex/1.axk
-t/ex/2.axk
 t/ex/ex1.xml
 t/ex/lTEST.axk
 t/ex/nutrition.xml

@@ -7,7 +7,7 @@ use AxkTest;
 use parent 'Test::Class';
 use Test::Exception;
 
-sub class { "XML::Axk::L1" };
+sub class { "XML::Axk::L::L1" };
 
 diag("Testing ", class);
 

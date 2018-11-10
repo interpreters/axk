@@ -184,7 +184,7 @@ sub sel {
 # Script parameters ============================================== {{{1
 
 # Script-parameter names
-our @SP_names = qw($C @F $D $E $NOW);
+our @SP_names = qw($D $E $NOW);
 
 sub update {
     #say "L1::update: ", Dumper(\@_);
