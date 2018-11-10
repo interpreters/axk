@@ -22,12 +22,35 @@ my $secure_perl_path = get_perl_filename();
 
 sub MY::postamble {     # TODO also handle Windows nmake syntax (SET vs. export)
     return <<EOT;
-authortest:
-\tRELEASE_TESTING=1 prove -l xt"
 
-testhere:   # Run the tests from lib rather than blib
+# Uninstallation: mimic what the normal "uninstall" target does, but actually
+# carry out the actions.
+# Note: this may leave empty directories in place, since the packlist only
+# includes files.
+
+ACTUALLY_UNINSTALL = "$secure_perl_path" -MExtUtils::Install -e 'uninstall(shift,1)' --
+
+actually_uninstall :: actually_uninstall_from_\$(INSTALLDIRS)dirs
+\t\$(NOECHO) \$(NOOP)
+
+actually_uninstall_from_perldirs ::
+\t-\$(ACTUALLY_UNINSTALL) "\$(PERL_ARCHLIB)/auto/\$(FULLEXT)/.packlist"
+
+actually_uninstall_from_sitedirs ::
+\t-\$(ACTUALLY_UNINSTALL) "\$(SITEARCHEXP)/auto/\$(FULLEXT)/.packlist"
+
+actually_uninstall_from_vendordirs ::
+\t-\$(ACTUALLY_UNINSTALL) "\$(VENDORARCHEXP)/auto/\$(FULLEXT)/.packlist"
+
+# Run author tests
+authortest:
+\tRELEASE_TESTING=1 prove -l xt
+
+# Test without installing: run the tests from lib rather than blib
+testhere: actually_uninstall
 \t"$secure_perl_path" -Ilib -e 'use Test::Harness "runtests"; runtests \@ARGV;' -- t/*.t
 EOT
+
 } #postamble
 
 WriteMakefile(
