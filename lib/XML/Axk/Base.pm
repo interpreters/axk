@@ -36,6 +36,7 @@ our %EXPORT_TAGS = (
     all => [@EXPORT, @EXPORT_OK]
 );
 
+# Uncomment for full stacktraces on all errors
 BEGIN {
     $SIG{'__DIE__'} = sub { Carp::confess(@_) } unless $SIG{'__DIE__'};
     #$Exporter::Verbose=1;

@@ -6,6 +6,7 @@ use warnings;
 use Test::More; # tests=>27;
 use Capture::Tiny 'capture_stdout';
 use File::Spec;
+use constant { true => !!1, false => !!0 };
 
 BEGIN {
     use_ok( 'XML::Axk::Core' ) || print "Bail out!\n";
@@ -19,7 +20,8 @@ sub localpath {
 # Inline script, operation at runtime ============================= {{{1
 {
     my $core = XML::Axk::Core->new();
-    $core->load_script_text('pre_all { print 42 }','filename',1);
+    $core->load_script_text(text => 'pre_all { print 42 }',
+        filename => 'filename', auto_language => true);
 
     my $out = capture_stdout { $core->run(); };
     is($out, '42', 'inline script runs');
@@ -30,7 +32,8 @@ sub localpath {
 {
     my $core = XML::Axk::Core->new();
     my $out = capture_stdout {
-        $core->load_script_text('print 42','filename',1);
+        $core->load_script_text(text => 'print 42',
+            filename => 'filename', auto_language => true);
     };
     is($out, '42', 'inline script runs load-time statements');
 
@@ -42,7 +45,7 @@ sub localpath {
 # Script on disk ================================================== {{{1
 {
     my $core = XML::Axk::Core->new();
-    $core->load_script_file(localpath 'ex/02.axk');
+    $core->load_script_file(filename => localpath('ex/02.axk'));
 
     my $out = capture_stdout { $core->run(); };
     is($out, '1337', 'on-disk script runs');
@@ -52,7 +55,7 @@ sub localpath {
 # Script with no language indicator =============================== {{{1
 {
     my $core = XML::Axk::Core->new();
-    eval { $core->load_script_file(localpath 'ex/02-noL.axk'); };
+    eval { $core->load_script_file(filename => localpath('ex/02-noL.axk')); };
     my $err = $@;
     like($err, qr/No language \(Ln\) specified/, 'detects missing Ln');
 }

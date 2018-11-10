@@ -20,14 +20,23 @@ use constant EXIT_PARAM_ERR	=> 2;	# couldn't understand the command line
 
 # === Command line parsing ============================================== {{{1
 
-# files/scripts to load, in order.  Each element is [isfile, text].
-# Package var so we can localize it.
+# Files/scripts to load, in order.  Each element is either [isfile, text]
+# or {...} for pragmas.
+# It is a package var so we can localize it.
 our @_Sources;
 
 my $dr_save_source = sub {
     my ($which, $text) = @_;
     push @_Sources, [$which eq 'f', $text];
 }; # dr_save_source
+
+my $dr_save_pragma = sub {
+    my ($kind, $text) = @_;
+    $kind = 'B' if $kind eq 'backend';
+    $kind = 'L' if $kind eq 'language';
+
+    push @_Sources, { $kind => $text };
+}; # dr_save_pragma
 
 my %CMDLINE_OPTS = (
     # hash from internal name to array reference of
@@ -37,7 +46,7 @@ my %CMDLINE_OPTS = (
     # They are listed in alphabetical order by option name,
     # lowercase before upper, although the code does not require that order.
 
-    #BACKEND => ['b', '|backend=s'],        # TODO
+    #BACKEND => ['b', '|backend=s', $dr_save_pragma],   # TODO
 
     #DUMP_VARS => ['d', '|dump-variables', false],
     #DEBUG => ['D','|debug', false],
@@ -50,7 +59,7 @@ my %CMDLINE_OPTS = (
     #INCLUDE => ['i','|include=s@'],
     #KEEP_GOING => ['k','|keep-going',false], #not in gawk
     #LIB => ['l','|load=s@'],
-    LANGUAGE => ['L','|language=s'],
+    LANGUAGE => ['L','|language=s', $dr_save_pragma],
     # --man reserved
     # OUTPUT_FILENAME => ['o','|output=s', ""], # conflict with gawk
     # OPTIMIZE => ['O','|optimize'],
@@ -162,16 +171,43 @@ sub Main {
         # they stick around as long as $core does.
 
     my $cmd_line_idx = 0;   # Number the `-e`s on the command line
-    foreach my $lrSource (@{$opts{SOURCES}}) {
-        my ($is_file, $text) = @$lrSource;
-        if($is_file) {
-            $core->load_script_file($text);
-        } else {
-            $core->load_script_text($text,
-                "(cmd line script #@{[++$cmd_line_idx]})",
-                true);  # true => add a Ln if there isn't one in the script
+    my $curr_lang = undef;  # current -L, if any.
+    #my $curr_backend = undef;  # to do
+
+    foreach my $rItem (@{$opts{SOURCES}}) {
+
+        if(ref $rItem eq 'ARRAY') {     # source file or text
+            my $lrSource = $rItem;
+            my ($is_file, $text) = @$lrSource;
+
+            if($is_file) {
+                $core->load_script_file(filename => $text,
+                    $curr_lang ? (language => $curr_lang) : ()
+                );
+
+            } else {
+                $core->load_script_text(text => $text,
+                    filename => "(cmd line script #@{[++$cmd_line_idx]})",
+                    $curr_lang ? (language => $curr_lang) :
+                        (auto_language => true)
+                        # true => add a Ln if there isn't one in the script
+                );
+            }
+
+        } else {                        # pragma
+            my $hrPragma = $rItem;
+
+            if(exists $hrPragma->{L}) {
+                $curr_lang = $hrPragma->{L};
+                #say "# Language is now $curr_lang"
+            }
+
+            if(exists $hrPragma->{B}) {
+                die 'Backend selection is not yet supported';
+            }
         }
-    } #foreach source
+
+    } #foreach source item
 
     # read from stdin if no input files specified.
     push @$lrArgs, '-' unless @$lrArgs || $opts{NO_INPUT};

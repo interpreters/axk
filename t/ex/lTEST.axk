@@ -1,4 +1,4 @@
-#!axk -L0
+#!axk -LTEST
 
 Some random text that isn't valid Perl!
 (*!@&$(*#O!@UJJ(O@()@)(

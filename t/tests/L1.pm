@@ -1,6 +1,7 @@
 # Tests for XML::Axk::L1.
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
-package T::XML::Axk::L1;
+# Test XML::Axk::L::L1;
+package L1;
 
 use AxkTest;
 use parent 'Test::Class';
@@ -13,7 +14,7 @@ diag("Testing ", class);
 # Inline script, operation at runtime ============================= {{{1
 sub t1 :Test(1) {
     my $core = XML::Axk::Core->new();
-    $core->load_script_text(q{
+    $core->load_script_text(text => q{
         -L1
         perform { say $E; } xpath("//item");
         perform { say $E; } xpath(q<//@attrname>);
@@ -28,7 +29,7 @@ sub t1 :Test(1) {
 
 sub t2 :Test(1) {
     my $core = XML::Axk::Core->new();
-    $core->load_script_text(q{
+    $core->load_script_text(text => q{
         -L1
         # It has to be `leaving` because otherwise the text-node child
         # hasn't been loaded yet!
@@ -41,7 +42,7 @@ sub t2 :Test(1) {
 
 sub t3 :Test(1) {
     my $core = XML::Axk::Core->new();
-    $core->load_script_text(q{
+    $core->load_script_text(text => q{
         -L1
         # `on` is an alias of `leaving`.
         on { xpath(q<//sodium>) } run {
@@ -53,7 +54,7 @@ sub t3 :Test(1) {
 
 sub t4 :Test(1) {
     my $core = XML::Axk::Core->new();
-    $core->load_script_text(q{
+    $core->load_script_text(text => q{
         -L1
         entering { xpath(q<//sodium>) } run {
             say $E->getFirstChild->getNodeValue;

@@ -45,6 +45,27 @@ C<-Ln> pragma at the beginning of your script or on the axk command line.
 This is consistent with the requirement to list the version in your source
 files.
 
+=head2 Language formats
+
+Languages can either be:
+
+=over
+
+=item C<[0-9]+>
+
+A numeric language has leading 0s stripped from its name.  E.g., C<-L012>
+tries to use language C<12>.
+
+Languages 1-9 are reserved for axk's use.
+
+=item C<[a-zA-Z][a-zA-Z0-9\.]*>
+
+An alphabetic language name is used as is, except that C<.> characters are
+converted to C<::> module separators.
+
+Language names that are all upper case, and that have no C<.> characters,
+are reserved for axk's use.
+
 =cut
 
 =head1 ROUTINES
@@ -159,19 +180,19 @@ sub assemble {
             $retval .= $hrPiece->{text};
             next;
         }
-        $lang = "XML::Axk::L::L$lang";
+        my $lang_module = "XML::Axk::L::L$lang";
 
         # Does this language parse the source text itself?
         my $want_text;
-        eval "require $lang";
+        eval "require $lang_module";
         die "Can't find language $lang: $@" if $@;
         do {
             no strict 'refs';
-            $want_text = ${"${lang}::C_WANT_TEXT"};
+            $want_text = ${"${lang_module}::C_WANT_TEXT"};
         };
 
         unless($want_text) {    # Easy case: the script's code is still Perl
-            $retval .= "use $lang;\n";
+            $retval .= "use $lang_module;\n";
             $retval .= "#line $hrPiece->{start} \"$filename\"\n";
             $retval .= $hrPiece->{text};
 
@@ -180,7 +201,7 @@ sub assemble {
                 "AXK_EMBEDDED_SOURCE_DO_NOT_TYPE_THIS_YOURSELF_OR_ELSE";
 
             $retval .=
-                "use $lang \"$filename\", $hrPiece->{start}, " .
+                "use $lang_module \"$filename\", $hrPiece->{start}, " .
                 "<<'$trailer';\n";
             $retval .= $hrPiece->{text};
             $retval .= "\n$trailer\n";

@@ -1,7 +1,8 @@
 #!perl -T
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
+# Test Object::TinyDefaults
 
-package T::Object::TinyDefaults;
+package TinyDefaults;
 
 use AxkTest;
 use parent 'Test::Class';

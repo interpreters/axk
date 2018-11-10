@@ -72,7 +72,9 @@ my $scriptnumber = 0;
 
 =head2 load_script_file
 
-Load the named script file from disk, but do not execute it.
+Load the named script file from disk, but do not execute it.  Usage:
+
+    $core->load_script_file(filename => $name[, ...])
 
 =cut
 
@@ -81,45 +83,59 @@ Load the named script file from disk, but do not execute it.
 # @param $fn {String}   Filename to load
 sub load_script_file {
     my $self = shift;
+    my %args = @_;
 
-    my $fn = shift;
-    open(my $fh, '<', $fn) or croak("Cannot open $fn");
+    my $fn = $args{filename} or croak 'Need a filename';
+    open(my $fh, '<', $fn) or croak "Cannot open $fn";
     my $contents = do { local $/; <$fh> };
     close $fh;
 
-    $self->load_script_text($contents, $fn, false);
+    $self->load_script_text(text => $contents, filename => $fn,
+        auto_language => false);
         # false => scripts on disk MUST specify a Ln directive.  This is a
-        # design decision, so we don't have issues like Perl 5/6 or Python 2/3.
+        # design decision, so we don't have issues like Python 2/3.
 
 } #load_script_file
 
 =head2 load_script_text
 
-Load the given text, but do not execute it.
+Load the given text, but do not execute it.  Usage:
+
+    $core->load_script_text(text => $text[, filename => $name][, ...])
 
 =cut
 
 # TODO permit specifying a specific Ln?
 # @param $self
 # @param $text {String} The source text, **which load_script_text may modify.**
-# @param $fn {String}   Filename to use in debugging messages
-# @param $add_Ln {boolean, default false} If true, add a Ln directive for the
+# @param $filename {String}   Filename to use in debugging messages
+# @param $auto_language {boolean, default false} If true, add a Ln directive for the
 #           current version if there isn't one in the script.
+# @param $language {String}     If provided, the language to use for the first
+#           chunk of the text.
 sub load_script_text {
     my $self = shift;
-    my $text = shift;
-    my $fn = shift // '(command line)';
-    my $add_Ln = shift;
+    my %args = @_;
+
+    my $text = $args{text} or croak 'Need script text';
+    my $fn = $args{filename} // '(anonymous)';
+
+    my $curr_lang = $args{language};
+    my $add_Ln = $args{auto_language};
+    croak 'language and auto_language are mutually exclusive' if $curr_lang && $add_Ln;
 
     # Text to wrap around the script
     my ($leader, $trailer) = ('', '');
 
     #say "Text is $text";
-    my ($lrPieces, $has_lang) = XML::Axk::Preparse::pieces(\$text,
-        $add_Ln ? { L => {} } : undef);
+    my $hrInitialPragmas = {};
+    $hrInitialPragmas = { L => {$curr_lang ? (name => '' . $curr_lang) : ()} }
+        if $add_Ln || $curr_lang;
+
+    my ($lrPieces, $has_lang) = XML::Axk::Preparse::pieces(\$text, $hrInitialPragmas);
 
     #say "Has lang" if $has_lang;
-    unless($has_lang) {
+    unless($has_lang || $curr_lang) {
         if($add_Ln) {
             $lrPieces->[0]->{pragmas}->{L}->{digits} = 1;  # default language
         } else {

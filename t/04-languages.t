@@ -18,7 +18,7 @@ sub localpath {
 {
     my $out = capture_stdout
         { XML::Axk::App::Main(['--no-input', '-e',
-            "say __LINE__;\n-L1\n-L0\n-L1\n-L0\n-L0\n-L1\n-L1\nsay __LINE__;" ]) };
+            "say __LINE__;\n-L1\n-LTEST\n-L1\n-LTEST\n-LTEST\n-L1\n-L1\nsay __LINE__;" ]) };
    like($out, qr/1\n9\n\Z/, 'line number counting works');
 }
 
@@ -34,7 +34,7 @@ sub localpath {
 # Semicolons and leading zeros on Ln lines ======================== {{{1
 {
     my $out = capture_merged
-        { XML::Axk::App::Main(['--no-input', '-e', "-L1;\n-L01\n-L01;\n-L0000" ]) };
+        { XML::Axk::App::Main(['--no-input', '-e', "-L1;\n-L01\n-L01;\n-LTEST" ]) };
    is($out, '', 'semicolons and leading zeros with Ln');
 }
 
