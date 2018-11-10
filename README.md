@@ -15,7 +15,7 @@ After installation, run `axk`.  Options are similar to `awk`.  Input scripts
 are Perl 5.18 with functions to, e.g., run on any node matching a given XPath.
 See [L1.md](L1.md) for more details.  For example, the script
 
-    L1
+    -L1
     on { xpath(q<//item>) } run { say "$NOW: " . $E->getTagName };
 
 or the equivalent command line
@@ -32,7 +32,7 @@ After installing, you can find documentation for this module with the
 perldoc command:
 
  - `perldoc XML::Axk::App` for command-line usage instructions
- - `perldoc XML::Axk::L1` for the language reference
+ - `perldoc XML::Axk::L::L1` or [L1.md](L1.md) for the language reference
 
 ## LICENSE AND COPYRIGHT
 
