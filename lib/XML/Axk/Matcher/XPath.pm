@@ -9,7 +9,7 @@ use XML::Axk::DOM;
 
 our $VERBOSE = 0;
 
-use Object::TinyDefaults
+use XML::Axk::Object::TinyDefaults
     {   kind => 'xpath',
         file => '(unknown source)',
         line => 0

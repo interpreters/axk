@@ -3,8 +3,19 @@ use strict;
 use warnings;
 use Config;
 use ExtUtils::MakeMaker;
+use File::Spec;
 
-# Get the filename of the Perl interpreter running this.  Modified from perlvar.
+my $VERSION_FROM = File::Spec->catfile(qw(lib XML Axk.pm));
+# Module metadata {{{1
+my $provides;
+eval {
+    require Module::Metadata;
+    $provides = Module::Metadata->provides(version => '2', dir => 'lib');
+        # Thanks to https://stackoverflow.com/a/28928985/2877364 by LEONT
+};
+# }}}1
+# Get the filename of the Perl interpreter running this. {{{1
+# Modified from perlvar.
 # The -x test is for cygwin or other systems where $Config{perlpath} has no
 # extension and $Config{_exe} is nonempty.  E.g., symlink perl->perl5.10.1.exe.
 # There is no "perl.exe" on such a system.
@@ -17,9 +28,11 @@ sub get_perl_filename {
     }
     return $secure_perl_path;
 } # get_perl_filename()
+# }}}1
 
 my $secure_perl_path = get_perl_filename();
 
+# Makefile customization {{{1
 sub MY::postamble {     # TODO also handle Windows nmake syntax (SET vs. export)
     return <<EOT;
 
@@ -52,18 +65,21 @@ testhere: actually_uninstall
 EOT
 
 } #postamble
+# }}}1
 
-WriteMakefile(
+# Main options for EUMM
+my %opts = (
     NAME            => 'XML::Axk',
     AUTHOR          => q{Christopher White <cxwembedded@gmail.com>},
-    VERSION_FROM    => 'lib/XML/Axk/App.pm',
+    VERSION_FROM    => $VERSION_FROM,
     ABSTRACT        => 'awk-like XML processor',
     LICENSE         => 'artistic_2',
-    EXE_FILES       => [ 'bin/axk' ],
+    EXE_FILES       => [ File::Spec->catfile(qw(bin axk)) ],
     MIN_PERL_VERSION => '5.020',
     CONFIGURE_REQUIRES => {
         'Config' => '0',
         'ExtUtils::MakeMaker' => '0',
+        'File::Spec' => '0',
         'strict' => '0',
         'version' => '0.77',
         'warnings' => '0',
@@ -107,5 +123,34 @@ WriteMakefile(
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'XML-Axk-*' },
     depend => { Makefile => '$(VERSION_FROM)' },
+
+    META_MERGE => {
+        'meta-spec' => { version => 2 },
+
+        resources => {
+            bugtracker => {
+                web  => 'https://github.com/interpreters/axk/issues',
+            },
+            repository => {
+                type => 'git',
+                url  => 'https://github.com/interpreters/axk.git',
+                web  => 'https://github.com/interpreters/axk',
+            },
+        },
+
+        prereqs => {
+            develop => {
+                requires => {
+                    'App::RewriteVersion' => '0',   # for perl-bump-version
+                    'Module::Metadata' => '1.000016',
+                },
+            },
+        },
+
+        $provides ? (provides => $provides) : (),
+
+    }, #META_MERGE
 );
-# vi: set ts=4 sts=4 sw=4 et ai: #
+
+WriteMakefile(%opts);
+# vi: set ts=4 sts=4 sw=4 et ai fdm=marker: #

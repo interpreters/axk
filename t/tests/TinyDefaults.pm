@@ -1,29 +1,29 @@
 #!perl -T
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
-# Test Object::TinyDefaults
+# Test XML::Axk::Object::TinyDefaults
 
 package TinyDefaults;
 
 use AxkTest;
 use parent 'Test::Class';
 
-sub class { "Object::TinyDefaults" };
+sub class { "XML::Axk::Object::TinyDefaults" };
 
 sub startup :Tests(startup=>1) {
     my $test = shift;
     use_ok $test->class;
-    diag( "Testing Object::TinyDefaults $Object::TinyDefaults::VERSION, Perl $], $^X" );
+    diag( "Testing XML::Axk::Object::TinyDefaults $XML::Axk::Object::TinyDefaults::VERSION, Perl $], $^X" );
 }
 
 # No defaults ===================================================== {{{1
 package NoDefaults {
-    use Object::TinyDefaults qw(foo bar);
+    use XML::Axk::Object::TinyDefaults qw(foo bar);
 }
 
 sub no_defaults :Tests {
     my $x = NoDefaults->new();
     isa_ok($x, 'NoDefaults');
-    isa_ok($x, 'Object::TinyDefaults');
+    isa_ok($x, 'XML::Axk::Object::TinyDefaults');
     ok(!$x->foo, 'No default => falsy (foo)');
     ok(!$x->bar, 'No default => falsy (bar)');
     $x->{foo} = 42;
@@ -35,13 +35,13 @@ sub no_defaults :Tests {
 # }}}1
 # Defaults and field names ======================================== {{{1
 package DefaultsAndNames {
-    use Object::TinyDefaults { foo => 'default' }, qw(foo bar);
+    use XML::Axk::Object::TinyDefaults { foo => 'default' }, qw(foo bar);
 }
 
 sub defaults_and_names :Tests {
     my $x = DefaultsAndNames->new();
     isa_ok($x, 'DefaultsAndNames');
-    isa_ok($x, 'Object::TinyDefaults');
+    isa_ok($x, 'XML::Axk::Object::TinyDefaults');
     is($x->foo, 'default', 'default (foo)');
     ok(!$x->bar, 'no default => falsy (bar)');
     $x->{foo} = 42;
@@ -53,13 +53,13 @@ sub defaults_and_names :Tests {
 # }}}1
 # Defaults and field names; some names only in defaults =========== {{{1
 package DefaultsWithNamesAndNames {
-    use Object::TinyDefaults { quux => 'default' }, qw(foo bar);
+    use XML::Axk::Object::TinyDefaults { quux => 'default' }, qw(foo bar);
 }
 
 sub defaults_with_names_and_names :Tests {
     my $x = DefaultsWithNamesAndNames->new();
     isa_ok($x, 'DefaultsWithNamesAndNames');
-    isa_ok($x, 'Object::TinyDefaults');
+    isa_ok($x, 'XML::Axk::Object::TinyDefaults');
     is($x->quux, 'default', 'default (quux)');
     ok(!$x->foo, 'no default => falsy (foo)');
     ok(!$x->bar, 'no default => falsy (bar)');
@@ -74,13 +74,13 @@ sub defaults_with_names_and_names :Tests {
 # }}}1
 # Defaults only =================================================== {{{1
 package DefaultsOnly {
-    use Object::TinyDefaults { quux => 'default', foo=>42 };
+    use XML::Axk::Object::TinyDefaults { quux => 'default', foo=>42 };
 }
 
 sub defaults_only :Tests {
     my $x = DefaultsOnly->new();
     isa_ok($x, 'DefaultsOnly');
-    isa_ok($x, 'Object::TinyDefaults');
+    isa_ok($x, 'XML::Axk::Object::TinyDefaults');
     is($x->quux, 'default', 'default (quux)');
     is($x->foo, 42, 'default (foo)');
     $x->{quux} = 'yes';

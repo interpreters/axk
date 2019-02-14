@@ -5,7 +5,7 @@
 package XML::Axk::Matcher::Always;
 use XML::Axk::Base;
 
-use Object::TinyDefaults { always => true };
+use XML::Axk::Object::TinyDefaults { always => true };
 
 sub test {
     my $self = shift;

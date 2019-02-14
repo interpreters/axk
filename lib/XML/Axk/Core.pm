@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!perl
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
 # Style note: Hungarian prefixes are used on scalars:
@@ -10,6 +10,8 @@ package XML::Axk::Core;
 use XML::Axk::Base qw(:all);
 use XML::Axk::Preparse;
 use Data::Dumper;
+
+our $VERSION = '0.001006';
 
 =encoding UTF-8
 

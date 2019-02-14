@@ -1,6 +1,6 @@
 bin/axk
 Changes
-lib/Object/TinyDefaults.pm
+lib/XML/Axk.pm
 lib/XML/Axk/App.pm
 lib/XML/Axk/Base.pm
 lib/XML/Axk/Core.pm
@@ -11,6 +11,7 @@ lib/XML/Axk/L/LTEST.pm
 lib/XML/Axk/Language.pm
 lib/XML/Axk/Matcher/Always.pm
 lib/XML/Axk/Matcher/XPath.pm
+lib/XML/Axk/Object/TinyDefaults.pm
 lib/XML/Axk/Preparse.pm
 lib/XML/Axk/Sandbox.pm
 lib/XML/Axk/SAX/BuildDOM2.pm

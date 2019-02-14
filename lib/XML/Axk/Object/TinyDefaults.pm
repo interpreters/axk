@@ -1,8 +1,8 @@
 #!/usr/bin/env perl
-# Object::TinyDefaults - Object::Tiny::XS, but with default values.
+# XML::Axk::Object::TinyDefaults - Object::Tiny::XS, but with default values.
 # Copyright (c) 2018 cxw42.  All rights reserved.  Artistic 2.
 
-package Object::TinyDefaults;
+package XML::Axk::Object::TinyDefaults;
 
 use 5.004;
 use strict 'vars', 'subs';
@@ -11,8 +11,7 @@ use Data::Dumper;
 use Import::Into;
 
 our $ObjTiny;
-our $VERSION;
-$VERSION = '0.01';
+our $VERSION = '0.001006';
 
 BEGIN {
     require parent;
@@ -83,12 +82,12 @@ __END__
 
 =head1 NAME
 
-Object::TinyDefaults - Object::Tiny[::XS] wrapper that adds default values
+XML::Axk::Object::TinyDefaults - Object::Tiny[::XS] wrapper that adds default values
 
 =head1 SYNOPSIS
 
     package MyClass;
-    use Object::TinyDefaults { foo => 42 } qw(bar bat);
+    use XML::Axk::Object::TinyDefaults { foo => 42 } qw(bar bat);
 
     package main;
     my $inst = MyClass->new(bar=>1);
@@ -97,6 +96,8 @@ Now MyClass has accessors C<foo()>, C<bar()>, and C<bat()>, and values
 C<foo=42> and C<bar=1>.
 
 Requires L<Object::Tiny> or L<Object::Tiny::XS>.  XS will be used if available.
+
+TODO replace this with L<Class::Tiny>!
 
 =head1 COPYRIGHT
 
