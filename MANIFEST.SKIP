@@ -1,4 +1,5 @@
 # MANIFEST.SKIP for Text::PerlPP
+TODO
 
 # Markdown files that we keep for GitHub, but don't need on CPAN
 ^L1.md
