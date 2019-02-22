@@ -11,7 +11,7 @@ use Data::Dumper;
 use Import::Into;
 
 our $ObjTiny;
-our $VERSION = '0.001007'; # TRIAL
+our $VERSION = '0.001008';
 
 BEGIN {
     require parent;

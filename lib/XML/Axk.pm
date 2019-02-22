@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use XML::Axk::Base;
 
-our $VERSION = '0.001007'; # TRIAL
+our $VERSION = '0.001008';
 
 #use parent 'Exporter';
 #our (@EXPORT, @EXPORT_OK, %EXPORT_TAGS);
