@@ -66,7 +66,7 @@ converted to C<::> module separators.
 Language names that are all upper case, and that have no C<.> characters,
 are reserved for axk's use.
 
-=cut
+=back
 
 =head1 ROUTINES
 
